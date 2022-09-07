@@ -1,0 +1,8 @@
+{
+  "name": "pm2d",
+  "version": "0.0.1",
+  "scripts": {},
+  "dependencies": {
+    "cli-color": "^2.0.3"
+  }
+}
