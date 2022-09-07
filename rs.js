@@ -20,14 +20,9 @@ function run(command, opt) {
     const result = {resultCode:0, command:command, lines:[]}    
 
     try{
-//      const cmd_args = command.split(" ");
-//      const cmd = cmd_args[0];
-//      cmd_args.shift();
-//      const proc = spawn(cmd, cmd_args);    
       const proc = exec(command);
 
       proc.stdout.on('data', function (data) {
-//console.log("run proc.stdout.data");
         const s = data.toString('utf8');
         result.lines.push(s);
         if (opt && opt.onData) {
@@ -40,7 +35,6 @@ function run(command, opt) {
       });
 
       proc.stderr.on('data', function (data) {
-//console.log("run proc.stderr.data");
         const s = data.toString('utf8');
         result.lines.push(s);
         if (opt && opt.onData) {
@@ -53,7 +47,6 @@ function run(command, opt) {
       });
 
       proc.on('exit', function (code) {
-//console.log("run proc.exit");
         result.lines.push('EXIT '+ code);
         if (code == 0) { 
           resolve(result);
@@ -64,13 +57,11 @@ function run(command, opt) {
       });
 
       proc.on('error', function (data) {
-//console.log("run proc.error", data);
         result.lines.push('ERROR '+ data.toString('utf8'));
         reject(result);
       });
 
     } catch (err) {
-//console.log("run catch");
       result.resultCode = -1;
       result.lines.push('ERROR '+ err.stack);
       reject(result);

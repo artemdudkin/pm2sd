@@ -1,6 +1,5 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
-const ls = require('./ls');
 
 function stop(serviceName) {
   return runScript(`systemctl stop ${serviceName}`)

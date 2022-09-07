@@ -3,12 +3,9 @@ const { runScript } = require('./rs');
 
 
 function getServiceList(name) {
-//  return runScript('systemctl --type=service | grep pm2d')
   return runScript('ls /etc/systemd/system')
     .then(res => {
-//      return res.lines.join('').split('\n').map(i=>i.trim()).map(i=>i.split(' ')[0]).filter(i=>i!=='EXIT')
       let r = res.lines.join('').split('\n').filter(i=>i.indexOf('EXIT')!==0)
-//console.log(r);
       return r.filter(i=>(name ? i.indexOf(name)!==-1 : true));
     })
 }
@@ -23,14 +20,13 @@ function formatL( s, len) {
 
 
 function print(result) {
-  let header=clc.blackBright(`┌──────────────────────┬──────────┬────────┬───────────┬───────────┬──────────┬──────────┬──────────┐\n`)+
-             clc.blackBright(`│ `+clc.cyanBright(`name`)+`                 │ `+clc.cyanBright(`pid`)+`      │ `+clc.cyanBright(`uptime`)+` │ `+clc.cyanBright(`status`)+`    │ `+clc.cyanBright(`startup`)+`   │ `+clc.cyanBright(`%cpu`)+`     │ `+clc.cyanBright(`mem`)+`      │ `+clc.cyanBright(`user`)+`     │\n`)+
-             clc.blackBright(`├──────────────────────┼──────────┼────────┼───────────┼───────────┼──────────┼──────────┼──────────┤`);
-
-
+  let header = clc.blackBright(`┌──────────────────────┬──────────┬────────┬───────────┬───────────┬──────────┬──────────┬──────────┐\n`)+
+               clc.blackBright(`│ `+clc.cyanBright(`name`)+`                 │ `+clc.cyanBright(`pid`)+`      │ `+clc.cyanBright(`uptime`)+` │ `+clc.cyanBright(`status`)+`    │ `+clc.cyanBright(`startup`)+`   │ `+clc.cyanBright(`%cpu`)+`     │ `+clc.cyanBright(`mem`)+`      │ `+clc.cyanBright(`user`)+`     │\n`)
+  let header2= clc.blackBright(`├──────────────────────┼──────────┼────────┼───────────┼───────────┼──────────┼──────────┼──────────┤`);
   let footer = clc.blackBright(`└──────────────────────┴──────────┴────────┴───────────┴───────────┴──────────┴──────────┴──────────┘`);
 
-  console.log(header);
+  console.log(header + (result.length>0 ? header2 : '') + (result.length==0 ? footer : ''));
+
   result.map( line => {
     let { name='', pid='', uptime='', active='', enabled='', memory='', user='', cpu='' } = line;
     name = formatL( name, 20);
@@ -48,12 +44,11 @@ function print(result) {
     let bb = clc.blackBright('│');
     console.log(`${bb} ${name} ${bb} ${pid} ${bb} ${uptime} ${bb} ${status} ${bb} ${enabled} ${bb} ${cpu} ${bb} ${mem} ${bb} ${user} ${bb}`);
   })
-  console.log(footer);
+  if (result.length>0) console.log(footer);
 }
 
 
 function processLines(lines, name) {
-//console.log('lines', lines)
         lines = lines.join('').split('\n')
         let ret = {}
         lines.forEach(line => {
@@ -85,21 +80,19 @@ function processLines(lines, name) {
         return r;
 }
 
-
-function ls(name) {
-  getServiceList(name)
+/**
+ * Filter list of services from /etc/systemd/system by name and returns json or print  
+ */
+function ls_json(name) {
+  return getServiceList(name)
   .then(res => {
-//    console.log(res)
-  
     let result = [];
     let r = Promise.resolve();
 
     res.forEach( serviceName => {
       r = r.then(() => {
-//console.log('serviceName', serviceName)
         return runScript(`systemctl status ${serviceName}`)
         .then(res => {
-//    console.log('res', res)
           let r = processLines(res.lines, name);
           if (typeof r.Loaded !== 'undefined') result.push(r);
 
@@ -115,21 +108,25 @@ function ls(name) {
           .catch(err => {})
         })
         .catch(res => {
-//    console.log(res)
-//console.log('catch', res)
           let r = processLines(res.lines, name);
           if (typeof r.Loaded !== 'undefined') result.push(r);
         });
       })
     })
 
-    r.then(()=>{
-//console.log(result);
-      print(result);
+    return r.then(()=>{
+      return result;
     })
+  })
+}
+
+function ls(name) {
+  ls_json(name)
+  .then(result => {
+    print(result)
   })
   .catch(err => console.log('ERROR', err));
 }
 
 
-module.exports = ls;
+module.exports = { ls, ls_json };

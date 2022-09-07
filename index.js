@@ -1,4 +1,4 @@
-const ls = require('./ls');
+const { ls } = require('./ls');
 const stop = require('./stop');
 
 const args = process.argv.slice(2);
@@ -7,8 +7,10 @@ if (args[0] === 'ls') {
   if (args[1]) {
      if (args[1] === '--all') {
        ls();
-     } else {
+     } else if (args[1].startsWith('-')) {
        console.error('ERROR: unknown option ' + args[1]);
+     } else {
+       ls(args[1]);
      }
   } else {
     ls('pm2d');
