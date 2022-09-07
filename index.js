@@ -16,7 +16,7 @@ if (args[0] === 'ls') {
        ls(args[1]);
      }
   } else {
-    ls('pm2d');
+    ls('pm2sd');
   }
 
 
@@ -73,6 +73,6 @@ if (args[0] === 'ls') {
 
 
 } else {
-  console.log('\n    Usage: pm2d [ls|start|stop|restart|delete] [options]\n');
+  console.log('\n    Usage: pm2sd [ls|start|stop|restart|delete] [options]\n');
 }
 
