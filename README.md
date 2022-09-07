@@ -6,3 +6,5 @@ Only command implemented right now is **ls** that shows all services from /etc/s
 ```bash
 $ pm2sd ls --all
 ```
+
+<img width=600px src="https://raw.githubusercontent.com/artemdudkin/pm2sd/main/doc/ls.png" alt="ls output">
