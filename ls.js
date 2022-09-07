@@ -52,7 +52,8 @@ function print(result) {
 }
 
 
-function processLines(lines) {
+function processLines(lines, name) {
+//console.log('lines', lines)
         lines = lines.join('').split('\n')
         let ret = {}
         lines.forEach(line => {
@@ -62,9 +63,17 @@ function processLines(lines) {
           }
         })
 
+        let rname = (lines[0].split('.')[0].split(' ')[1] || '')
+        if (name) rname = rname.replace(name+'-', '')
+        rname = rname.trim();
+
+        let rdescription = (lines[0].split(' - ')[1] || '');
+        if (name) rdescription = rdescription.replace(name.toUpperCase(), '')
+        rdescription = rdescription.trim();
+
         let r = {}
-        r.name = (lines[0].split('.')[0].split(' ')[1] || '').replace('pm2d-', '').trim();
-        r.description = (lines[0].split('PM2D')[1] || '').trim();
+        r.name = rname;
+        r.description = rdescription;
         r.active = (ret.Active || '').split(' ')[0];
         r.enabled = ((ret.Loaded || '').split(';')[1] || '').trim();
         r.uptime = ((ret.Active || '').split(';')[1] || '').replace('ago', '').trim();
@@ -87,10 +96,11 @@ function ls(name) {
 
     res.forEach( serviceName => {
       r = r.then(() => {
+//console.log('serviceName', serviceName)
         return runScript(`systemctl status ${serviceName}`)
         .then(res => {
-//    console.log(res)
-          let r = processLines(res.lines);
+//    console.log('res', res)
+          let r = processLines(res.lines, name);
           if (typeof r.Loaded !== 'undefined') result.push(r);
 
           return runScript(`ps -o user= -p ${r.pid}`)
@@ -106,13 +116,15 @@ function ls(name) {
         })
         .catch(res => {
 //    console.log(res)
-          let r = processLines(res.lines);
+//console.log('catch', res)
+          let r = processLines(res.lines, name);
           if (typeof r.Loaded !== 'undefined') result.push(r);
         });
       })
     })
 
     r.then(()=>{
+//console.log(result);
       print(result);
     })
   })
