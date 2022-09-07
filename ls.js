@@ -75,6 +75,7 @@ function processLines(lines, name) {
         r.pid = (ret['Main PID'] || ret['Process'] || '').split(' ')[0];
         r.memory = ret['Memory'] || '';
         r.user = '';
+        r.cpu = '';
         r.Loaded = ret.Loaded;
 
         return r;
@@ -129,4 +130,4 @@ function ls(name) {
 }
 
 
-module.exports = { ls, ls_json };
+module.exports = { getServiceList, ls, ls_json };
