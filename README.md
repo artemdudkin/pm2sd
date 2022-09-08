@@ -36,7 +36,7 @@ Stops process (by its name).
 
 ## restart
 
-Resarts process (by its name).
+Restarts process (by its name).
 
 ## delete
 
