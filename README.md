@@ -7,7 +7,7 @@ You can start process as simple as
 $ pm2sd start index.js
 ```
 
-Process will be started as linux service (i.e. added to /etc/systemd/system), enabled for restart after reboot, will restart in 30 seconds if it crashes, output and error logs goes to `/var/log/<name>` (yes, start demands `sudo` right now, but service can be started from any user). No clusters, no load balancers, just one living process.
+Process will be started as linux service (i.e. added to /etc/systemd/system), enabled for restart after reboot, will restart in 30 seconds if it crashes, output and error logs goes to `/var/log/pm2sd-<name>` (yes, start demands `sudo` right now, but service can be started from any user). No clusters, no load balancers, just one living process.
 
 Implemented commands: ls, start, stop, restart, delete.
 
