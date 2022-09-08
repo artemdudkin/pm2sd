@@ -11,6 +11,8 @@ Process will be started as linux service (i.e. added to /etc/systemd/system), en
 
 Implemented commands: ls, start, stop, restart, delete.
 
+Works on Linux (and Windows in plans).
+
 ## ls
 
 Lists all pm2sd services. Also, you can get list of all system services with option `--all`:
