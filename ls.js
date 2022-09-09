@@ -111,13 +111,15 @@ function processLines(lines, prefix) {
  *
  * @returns [{name, description, active, enabled, uptime, pid, memory, user, cpu, Loaded}, ...]
  */
-function getServiceListInfo(res, prefix) {
+async function getServiceListInfo(res, prefix) {
+    let currentUser = await getCurrentUser();
+
     let result = [];
     let r = Promise.resolve();
 
     res.forEach( serviceName => {
       r = r.then(() => {
-        return runScript(`systemctl status ${serviceName}`)
+        return runScript(`systemctl ${currentUser==='root'?'':'--user'} status ${serviceName}`)
         .then(res => {
           let r = processLines(res.lines, prefix);
           if (typeof r.Loaded !== 'undefined') result.push(r);
@@ -148,29 +150,27 @@ function getServiceListInfo(res, prefix) {
     })
 }
 
-function ls(name, prefix) {
+async function ls(name, prefix) {
   loader_on();
-
-  return getServiceList(name)
-  .then(s => {
-    getServiceListInfo(s, prefix)
-    .then(res => {
-      loader_off();
-      print(res)
-    })
-  })
-  .catch(err => console.log('ERROR', err));
+  try {
+    let s = await getServiceList(name)
+    let res = await getServiceListInfo(s, prefix)
+    loader_off();
+    print(res)
+  } catch (err) {
+    loader_off();
+    console.log('ERROR', err)
+  }
 }
 
-function ls_sys(name, prefix) {
-  return getSystemServiceList(name)
-  .then(s => {
-    getServiceListInfo(s, prefix)
-    .then(res => {
-      print(res)
-    })
-  })
-  .catch(err => console.log('ERROR', err));
+async function ls_sys(name, prefix) {
+  try {
+    let s = getSystemServiceList(name)
+    let res =getServiceListInfo(s, prefix)
+    print(res)
+  } catch (err) {
+    console.log('ERROR', err);
+  }
 }
 
 

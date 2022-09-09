@@ -11,7 +11,7 @@ async function start(fn, opt) {
   if (!opt.user) opt.user = currentUser;
 
   if (currentUser !== 'root' && opt.user !== currentUser ) {
-    throw new Error(`Cannot start for user '${opt.user}' from user ${currentUser}`);
+    throw new Error(`Cannot start for different user from non-root user`);
   }
 
   let res = await getServiceList()
@@ -36,16 +36,19 @@ async function start(fn, opt) {
 
     fs.writeFileSync(`${scriptFolder}${opt.name}.service.sh`, `#!/bin/bash
 
+# env for nvm-based node
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+#redirect logs to specified folder
 exec 1>>${logFolder}${opt.name}/output.log
 exec 2>&1
 
+#add timestamp to logs
 adddate() {
     while IFS= read -r line; do
-        printf '%s %s\n' "$(date)" "$line";
+        printf '%s %s\\n' "$(date)" "$line";
     done
 }
 
@@ -62,7 +65,7 @@ Description=PM2SD ${opt.description || opt.name}
 After=network.target
 
 [Service]
-User=${opt.user}
+${currentUser==='root'?`User=${opt.user}`:''}
 WorkingDirectory=${process.cwd()}
 Type=forking
 Restart=always
@@ -70,7 +73,7 @@ RestartSec=30
 ExecStart=/bin/bash ${scriptFolder}${opt.name}.service.sh
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=${currentUser==='root'?'multi-user.target':'default.target'}
     `, {mode:0o644})
 
     await runScript(`systemctl ${currentUser==='root'?'':'--user'} daemon-reload`)

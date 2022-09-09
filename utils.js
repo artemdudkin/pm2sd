@@ -1,9 +1,14 @@
 const os = require('os');
 const { runScript } = require('./rs');
 
+
+let currentUser;
 async function getCurrentUser() {
-  let whoami = await runScript('whoami');
-  let currentUser = whoami.lines.join('').split('\n')[0];
+  if (!currentUser) { // memoization of current user
+    let whoami = await runScript('whoami');
+    currentUser = whoami.lines.join('').split('\n')[0];
+  } else {
+  }
   return currentUser;
 }
 
@@ -28,9 +33,12 @@ function getSystemServiceList(name) {
  * Returns array of service names from 'systemctl list-unit-files'
  * (also filter by name if any)
  */
-function getServiceList(name) {
-  return runScript('systemctl list-unit-files')
+async function getServiceList(name) {
+  let currentUser = await getCurrentUser();
+
+  return runScript(`systemctl ${currentUser==='root'?'':'--user'} list-unit-files`)
     .then(res => {
+//console.log('res', res);
       let r = res.lines.join('')
                        .split('\n')
                        .filter(i=>i.indexOf('EXIT')!==0 && i.indexOf('UNIT')!==0 && i.indexOf('files listed.')===-1 )

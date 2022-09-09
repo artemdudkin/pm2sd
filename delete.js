@@ -3,6 +3,7 @@ const { resolve } = require('path');
 var clc = require("cli-color");
 const { runScript } = require('./rs');
 const { getCurrentUser, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils');
+const stop = require('./stop');
 
 async function start(serviceName) {
   let currentUser = await getCurrentUser();
@@ -12,7 +13,7 @@ async function start(serviceName) {
   let serviceFolder = getServiceFolder(currentUser);
 
   try {
-    await runScript(`systemctl stop ${serviceName}`);
+    await stop(serviceName, true);
   } catch (e) {}
 
   await runScript(`rm -rf ${scriptFolder}${serviceName}.sh`);

@@ -4,7 +4,7 @@ const { getCurrentUser } = require('./utils');
 
 
 async function stop(serviceName, isSilent) {
-  console.log(`Stoping service ${serviceName}...`);
+  if (!isSilent) console.log(`Stoping service ${serviceName}...`);
 
   let currentUser = await getCurrentUser();
 
