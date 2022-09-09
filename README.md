@@ -27,7 +27,8 @@ Also you can filter list of all services by part of its name with `pm2sd ls <nam
 
 ## start
 
-Starts new process. Avaliable options: name, description, time, user (i.e. can be started from any user). `--time` adds timestamp to logs.
+Starts new process. Avaliable options: name, description, time, user (i.e. can be started from any user). 
+`--time` adds timestamp to logs.
 
 ```bash
 $ pm2sd start index.js --name=test --user=node
