@@ -1,13 +1,24 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
+const { getCurrentUser, getServiceList, getSystemServiceList } = require('./utils');
 
 
-function getServiceList(name) {
-  return runScript('ls /etc/systemd/system')
-    .then(res => {
-      let r = res.lines.join('').split('\n').filter(i=>i.indexOf('EXIT')!==0)
-      return r.filter(i=>(name ? i.indexOf(name)!==-1 : true));
-    })
+const loader_frames = ['-', '\\', '|', '/'];
+let loader_index = 0;
+let loader_timer = 0;
+
+function loader_on(){
+  loader_off();
+  process.stdout.write('\u001B[?25l'); //hide cursor
+  loader_timer = setInterval( () => {
+    const frame = loader_frames[loader_index = ++loader_index % loader_frames.length];
+    process.stdout.write(` ${frame}`);
+    process.stdout.moveCursor(-2, 0)
+  }, 200);
+}
+function loader_off(){
+  process.stdout.write('\u001B[?25h'); //show cursor
+  clearInterval(loader_timer);
 }
 
 
@@ -16,6 +27,17 @@ function formatL( s, len) {
   if (s.length > len) s = s.substring(0, len-1) +  '\u0324';
   if (s.length < len) s = s + Array(len+1-s.length).join(' ');
   return s;
+}
+
+
+function formatMem( mem) {
+  if (mem < 1000) {
+    return mem+'kb'
+  } else if (mem < 1000000) {
+    return Math.round(mem/100)/10+'mb'
+  } else {
+    return Math.round(mem/100000)/10+'gb'
+  }
 }
 
 
@@ -72,7 +94,7 @@ function processLines(lines, name) {
         r.active = (ret.Active || '').split(' ')[0];
         r.enabled = ((ret.Loaded || '').split(';')[1] || '').trim();
         r.uptime = ((ret.Active || '').split(';')[1] || '').replace('ago', '').trim();
-        r.pid = (ret['Main PID'] || ret['Process'] || '').split(' ')[0];
+        r.pid = (ret['Main PID'] || '').split(' ')[0];
         r.memory = ret['Memory'] || '';
         r.user = '';
         r.cpu = '';
@@ -82,11 +104,14 @@ function processLines(lines, name) {
 }
 
 /**
- * Filter list of services from /etc/systemd/system by name and returns json or print  
+ * Get details for list of service names
+ *
+ * @param {Array} res - List of service names
+ * @param {String} name - name of service (to cut out it from list)
+ *
+ * @returns [{name, description, active, enabled, uptime, pid, memory, user, cpu, Loaded}, ...]
  */
-function ls_json(name) {
-  return getServiceList(name)
-  .then(res => {
+function getServiceListInfo(res, name) {
     let result = [];
     let r = Promise.resolve();
 
@@ -97,14 +122,17 @@ function ls_json(name) {
           let r = processLines(res.lines, name);
           if (typeof r.Loaded !== 'undefined') result.push(r);
 
-          return runScript(`ps -o user= -p ${r.pid}`)
+          return runScript(`ps -p ${r.pid} -o %cpu -o rss -o user`)
           .then(res => {
-            r.user = res.lines.join('').split('\n')[0];
+            let d = (res.lines.join('').split('\n')[1] || '').trim();
+            let p = d.indexOf(' ');
+            r.cpu = d.substring(0, p).trim();
 
-            return runScript(`ps -p ${r.pid} -o %cpu`)
-            .then(res => {
-              r.cpu = (res.lines.join('').split('\n')[1] || '').trim();
-            })
+            d = d.substring(p+1, d.length).trim()
+            p = d.indexOf(' ');
+            r.memory = formatMem(d.substring(0, p).trim());
+
+            r.user = d.substring(p+1, d.length).trim();
           })
           .catch(err => {})
         })
@@ -118,16 +146,33 @@ function ls_json(name) {
     return r.then(()=>{
       return result;
     })
-  })
 }
 
 function ls(name) {
-  ls_json(name)
-  .then(result => {
-    print(result)
+  loader_on();
+
+  return getServiceList(name)
+  .then(s => {
+    getServiceListInfo(s, name)
+    .then(res => {
+      loader_off();
+      print(res)
+    })
+  })
+  .catch(err => console.log('ERROR', err));
+}
+
+function ls_sys(name) {
+  return getSystemServiceList(name)
+  .then(s => {
+    getServiceListInfo(s, name)
+    .then(res => {
+      print(res)
+    })
   })
   .catch(err => console.log('ERROR', err));
 }
 
 
-module.exports = { getServiceList, ls, ls_json };
+
+module.exports = { getServiceListInfo, ls, ls_sys };

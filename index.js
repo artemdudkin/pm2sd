@@ -1,4 +1,4 @@
-const { ls } = require('./ls');
+const { ls, ls_sys } = require('./ls');
 const stop = require('./stop');
 const start = require('./start');
 const restart = require('./restart');
@@ -8,7 +8,9 @@ const args = process.argv.slice(2);
 
 if (args[0] === 'ls') {
   if (args[1]) {
-     if (args[1] === '--all') {
+     if (args[1] === '--system') {
+       ls_sys();
+     } else if (args[1] === '--all') {
        ls();
      } else if (args[1].startsWith('-')) {
        console.error('ERROR: unknown option ' + args[1]);
@@ -22,7 +24,7 @@ if (args[0] === 'ls') {
 
 } else if (args[0] === 'stop') {
   if (args[1]) {
-    stop('pm2sd-' + args[1]).finally(() => ls('pm2sd'));
+    stop('pm2sd-' + args[1]).finally(() => ls('pm2sd')).catch(err => console.log('ERROR', err));
   } else {
     console.error('ERROR: there is no service name after "stop"');
   }
@@ -30,7 +32,7 @@ if (args[0] === 'ls') {
 
 } else if (args[0] === 'restart') {
   if (args[1]) {
-    restart('pm2sd-' + args[1]).finally(() => ls('pm2sd'));
+    restart('pm2sd-' + args[1]).catch(err => console.log('ERROR', err)).finally(() => ls('pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "restart"');
   }
@@ -38,7 +40,7 @@ if (args[0] === 'ls') {
 
 } else if (args[0] === 'delete') {
   if (args[1]) {
-    op_delete('pm2sd-' + args[1]).finally(() => ls('pm2sd'));
+    op_delete('pm2sd-' + args[1]).catch(err => console.log('ERROR', err)).finally(() => ls('pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "delete"');
   }
@@ -65,7 +67,8 @@ if (args[0] === 'ls') {
   })
   if (opt) {
     if (args[1]) {
-      start(args[1], opt).then(() => ls('pm2sd')).catch(err => {console.log(err)});
+      if (!opt.name) opt.name = 's' + rnd(10000, 99999);
+      start(args[1], opt).then(() => ls('pm2sd')).catch(err => console.log('ERROR', err))
     } else {
       console.error('ERROR: there is no filename after "start"');
     }
@@ -76,3 +79,7 @@ if (args[0] === 'ls') {
   console.log('\n    Usage: pm2sd [ls|start|stop|restart|delete] [options]\n');
 }
 
+
+function rnd(min,max) {
+    return Math.floor((Math.random())*(max-min+1))+min;
+}
