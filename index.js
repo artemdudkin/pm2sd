@@ -27,7 +27,7 @@ if (args[0] === 'ls') {
   if (args[1]) {
     stop('pm2sd-' + args[1])
       .catch(err => console.log('ERROR', err))
-      .finally(() => ls('pm2sd'));
+      .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "stop"');
   }
@@ -39,7 +39,7 @@ if (args[0] === 'ls') {
     stop(name, true)
      .then(()=>start(name))
      .catch(err => console.log('ERROR', err))
-     .finally(() => ls('pm2sd'));
+     .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "restart"');
   }
@@ -49,7 +49,7 @@ if (args[0] === 'ls') {
   if (args[1]) {
     op_delete('pm2sd-' + args[1])
      .catch(err => console.log('ERROR', err))
-     .finally(() => ls('pm2sd'));
+     .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "delete"');
   }
@@ -82,12 +82,12 @@ if (args[0] === 'ls') {
         if (res.indexOf(`${possibleName}.service`) !== -1) {
           return start(possibleName)
            .catch(err => console.log('ERROR', err))
-           .finally(() => ls('pm2sd'));
+           .finally(() => ls('pm2sd', 'pm2sd'));
         } else {
           if (!opt.name) opt.name = 'pm2sd-' + rnd(10000, 99999);
           return create(args[1], opt)
            .catch(err => console.log('ERROR', err))
-           .finally(() => ls('pm2sd'));
+           .finally(() => ls('pm2sd', 'pm2sd'));
         }
       })
     } else {
