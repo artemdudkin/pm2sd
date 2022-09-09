@@ -30,7 +30,7 @@ Also you can filter list of all services by part of its name with `pm2sd ls <nam
 Starts new process. Avaliable options: name, description, user (i.e. can be started from any user). 
 
 ```bash
-$ pm2sd start index.js --name=test-server
+$ pm2sd start index.js --name=test --user=node
 ```
 Tested only for nvm-installed node, on CentOS and Ubuntu.
 
