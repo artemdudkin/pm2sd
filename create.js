@@ -40,7 +40,10 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-${scriptFolder}${opt.name}.sh > ${logFolder}${opt.name}/output.log 2>&1 &
+exec 1>>${logFolder}${opt.name}/output.log
+exec 2>&1
+
+${scriptFolder}${opt.name}.sh &
     `, {mode:0o755})
     if (opt.user!=='root') await runScript(`chown ${opt.user} ${scriptFolder}${opt.name}.service.sh`);
 
