@@ -63,10 +63,12 @@ if (args[0] === 'ls') {
         let p = o.indexOf('=');
         if (p===-1) p = o.length;
         let name = o.substring(2, p);
-        if (['name', 'user', 'description'].indexOf(name) === -1) {
+        if (['name', 'user', 'description', 'time'].indexOf(name) === -1) {
           console.error('ERROR: unknown option ' + name);
         } else {
-          opt[name] = (name==='name'?'pm2sd-':'') + o.substring(p+1, o.length);
+          let value = o.substring(p+1, o.length);
+          if (name==='name' && value) value='pm2sd-'+value;
+          opt[name] = value ? value : true;
         }
       } else {
         console.error('ERROR: unknown option ' + o);

@@ -43,7 +43,13 @@ export NVM_DIR="$HOME/.nvm"
 exec 1>>${logFolder}${opt.name}/output.log
 exec 2>&1
 
-${scriptFolder}${opt.name}.sh &
+adddate() {
+    while IFS= read -r line; do
+        printf '%s %s\n' "$(date)" "$line";
+    done
+}
+
+${scriptFolder}${opt.name}.sh ${opt.time?'| adddate':''} &
     `, {mode:0o755})
     if (opt.user!=='root') await runScript(`chown ${opt.user} ${scriptFolder}${opt.name}.service.sh`);
 
