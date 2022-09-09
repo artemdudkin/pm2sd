@@ -1,8 +1,9 @@
 const { ls, ls_sys } = require('./ls');
 const stop = require('./stop');
 const start = require('./start');
-const restart = require('./restart');
+const create = require('./create');
 const op_delete = require('./delete');
+const { getServiceList } = require('./utils');
 
 const args = process.argv.slice(2);
 
@@ -18,13 +19,15 @@ if (args[0] === 'ls') {
        ls(args[1]);
      }
   } else {
-    ls('pm2sd');
+    ls('pm2sd', 'pm2sd');
   }
 
 
 } else if (args[0] === 'stop') {
   if (args[1]) {
-    stop('pm2sd-' + args[1]).finally(() => ls('pm2sd')).catch(err => console.log('ERROR', err));
+    stop('pm2sd-' + args[1])
+      .catch(err => console.log('ERROR', err))
+      .finally(() => ls('pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "stop"');
   }
@@ -32,7 +35,11 @@ if (args[0] === 'ls') {
 
 } else if (args[0] === 'restart') {
   if (args[1]) {
-    restart('pm2sd-' + args[1]).catch(err => console.log('ERROR', err)).finally(() => ls('pm2sd'));
+    let name = 'pm2sd-' + args[1];
+    stop(name, true)
+     .then(()=>start(name))
+     .catch(err => console.log('ERROR', err))
+     .finally(() => ls('pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "restart"');
   }
@@ -40,7 +47,9 @@ if (args[0] === 'ls') {
 
 } else if (args[0] === 'delete') {
   if (args[1]) {
-    op_delete('pm2sd-' + args[1]).catch(err => console.log('ERROR', err)).finally(() => ls('pm2sd'));
+    op_delete('pm2sd-' + args[1])
+     .catch(err => console.log('ERROR', err))
+     .finally(() => ls('pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "delete"');
   }
@@ -67,8 +76,20 @@ if (args[0] === 'ls') {
   })
   if (opt) {
     if (args[1]) {
-      if (!opt.name) opt.name = 's' + rnd(10000, 99999);
-      start(args[1], opt).then(() => ls('pm2sd')).catch(err => console.log('ERROR', err))
+      let possibleName = 'pm2sd-' + args[1];
+      getServiceList()
+      .then( res => {
+        if (res.indexOf(`${possibleName}.service`) !== -1) {
+          return start(possibleName)
+           .catch(err => console.log('ERROR', err))
+           .finally(() => ls('pm2sd'));
+        } else {
+          if (!opt.name) opt.name = 'pm2sd-' + rnd(10000, 99999);
+          return create(args[1], opt)
+           .catch(err => console.log('ERROR', err))
+           .finally(() => ls('pm2sd'));
+        }
+      })
     } else {
       console.error('ERROR: there is no filename after "start"');
     }

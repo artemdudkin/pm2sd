@@ -23,6 +23,8 @@ $ pm2sd ls --all
 
 <img width=600px src="https://raw.githubusercontent.com/artemdudkin/pm2sd/main/doc/ls.png" alt="ls output">
 
+Also you can filter list of all services by part of its name with `pm2sd ls <name>`
+
 ## start
 
 Starts new process. Avaliable options: name, description, user (i.e. can be started from any user). 

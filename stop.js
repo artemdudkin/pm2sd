@@ -1,10 +1,16 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
+const { getCurrentUser } = require('./utils');
 
-function stop(serviceName) {
-  return runScript(`systemctl stop ${serviceName}`)
+
+async function stop(serviceName, isSilent) {
+  console.log(`Stoping service ${serviceName}...`);
+
+  let currentUser = await getCurrentUser();
+
+  return runScript(`systemctl ${currentUser==='root'?'':'--user'} stop ${serviceName}`)
     .catch( res => {
-      console.log('\n' + clc.red( res.lines.join('').split('\n')[0]) + '\n');
+      if (!isSilent) console.log('\n' + clc.red( res.lines.join('').split('\n')[0]) + '\n');
     })
 }
 

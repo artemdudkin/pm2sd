@@ -70,7 +70,7 @@ function print(result) {
 }
 
 
-function processLines(lines, name) {
+function processLines(lines, prefix) {
         lines = lines.join('').split('\n')
         let ret = {}
         lines.forEach(line => {
@@ -81,11 +81,11 @@ function processLines(lines, name) {
         })
 
         let rname = (lines[0].split('.')[0].split(' ')[1] || '')
-        if (name) rname = rname.replace(name+'-', '')
+        if (prefix) rname = rname.replace(prefix+'-', '')
         rname = rname.trim();
 
         let rdescription = (lines[0].split(' - ')[1] || '');
-        if (name) rdescription = rdescription.replace(name.toUpperCase(), '')
+        if (prefix) rdescription = rdescription.replace(prefix.toUpperCase(), '')
         rdescription = rdescription.trim();
 
         let r = {}
@@ -111,7 +111,7 @@ function processLines(lines, name) {
  *
  * @returns [{name, description, active, enabled, uptime, pid, memory, user, cpu, Loaded}, ...]
  */
-function getServiceListInfo(res, name) {
+function getServiceListInfo(res, prefix) {
     let result = [];
     let r = Promise.resolve();
 
@@ -119,7 +119,7 @@ function getServiceListInfo(res, name) {
       r = r.then(() => {
         return runScript(`systemctl status ${serviceName}`)
         .then(res => {
-          let r = processLines(res.lines, name);
+          let r = processLines(res.lines, prefix);
           if (typeof r.Loaded !== 'undefined') result.push(r);
 
           return runScript(`ps -p ${r.pid} -o %cpu -o rss -o user`)
@@ -137,7 +137,7 @@ function getServiceListInfo(res, name) {
           .catch(err => {})
         })
         .catch(res => {
-          let r = processLines(res.lines, name);
+          let r = processLines(res.lines, prefix);
           if (typeof r.Loaded !== 'undefined') result.push(r);
         });
       })
@@ -148,12 +148,12 @@ function getServiceListInfo(res, name) {
     })
 }
 
-function ls(name) {
+function ls(name, prefix) {
   loader_on();
 
   return getServiceList(name)
   .then(s => {
-    getServiceListInfo(s, name)
+    getServiceListInfo(s, prefix)
     .then(res => {
       loader_off();
       print(res)
@@ -162,10 +162,10 @@ function ls(name) {
   .catch(err => console.log('ERROR', err));
 }
 
-function ls_sys(name) {
+function ls_sys(name, prefix) {
   return getSystemServiceList(name)
   .then(s => {
-    getServiceListInfo(s, name)
+    getServiceListInfo(s, prefix)
     .then(res => {
       print(res)
     })
