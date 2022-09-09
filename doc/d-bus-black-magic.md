@@ -2,7 +2,7 @@
 
 2. Do `loginctl enable-linger <user>` from privileged user.
 
-3. As Red Hat disabled the systemd user service, please follow [this instruction from SO](https://serverfault.com/a/1026914):
+3. As Red Hat disabled the systemd user service, please follow [this instruction from SO](https://serverfault.com/a/1026914) to enable systemd user service for selected user:
 
 > I've noticed the tableau server uses --user systemd services - they even have a note about this in their docs: https://help.tableau.com/current/server-linux/en-us/systemd_user_service_error.htm
 >
