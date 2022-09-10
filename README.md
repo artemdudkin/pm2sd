@@ -7,7 +7,7 @@ You can start process as simple as
 $ pm2sd start index.js
 ```
 
-Process will be started as linux service (i.e. added to /etc/systemd/system), enabled for restart after reboot, will restart in 30 seconds if it crashes, output and error logs goes to `/var/log/pm2sd-<name>` (if you want to work under non privileged user, you need to do some [black magic](./doc/d-bus-black-magic.md)). 
+Process will be started as linux service (i.e. added to /etc/systemd/system), enabled for restart after reboot, will restart in 30 seconds if it crashes, output and error logs goes to `/var/log/pm2sd-<name>` (if you want configure and start service under non-privileged user, you need to do some [black magic](./doc/d-bus-black-magic.md)). 
 
 **No clusters, no load balancers, just one living process.**
 
