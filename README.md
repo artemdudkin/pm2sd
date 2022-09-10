@@ -35,7 +35,7 @@ Starts new process. Avaliable options: name, description, time, user (i.e. servi
 ```bash
 $ pm2sd start index.js --name=test --user=node
 ```
-Tested only for nvm-installed node, on CentOS and Ubuntu.
+Tested on CentOS and Ubuntu.
 
 ## stop
 
