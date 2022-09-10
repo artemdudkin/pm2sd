@@ -2,9 +2,11 @@
 
 2. To configure service, login as selected user and do not use `su - <user>` (because it causes error `Failed to get D-Bus connection: Connection refused`)
 
-3. Before service configuring, do `loginctl enable-linger <user>` from privileged user.
+3. Before service configuring, do `loginctl enable-linger <user>` from privileged user
 
-4. As Red Hat disabled the systemd user service, follow [this instruction from SO](https://serverfault.com/a/1026914) to enable systemd user service for selected user:
+4. Add user to group systemd-journal by `usermod -a -G systemd-journal <user>`
+
+5. As Red Hat disabled the systemd user service, follow [this instruction from SO](https://serverfault.com/a/1026914) to enable systemd user service for selected user:
 
 > I've noticed the tableau server uses --user systemd services - they even have a note about this in their docs: https://help.tableau.com/current/server-linux/en-us/systemd_user_service_error.htm
 >
