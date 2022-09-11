@@ -1,7 +1,7 @@
 {
   "name": "pm2sd",
   "description": "Node.js Process Manager over systemd service",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "private": false,
   "main": "index.js",
   "bin": {
@@ -16,6 +16,7 @@
   "author": "Artem Dudkin <sheeva@list.ru>",
   "license": "MIT",
   "dependencies": {
+    "always-tail": "^0.2.0",
     "cli-color": "^2.0.3"
   }
 }

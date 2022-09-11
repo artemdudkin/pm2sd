@@ -11,7 +11,7 @@ Process will be started as linux system service (i.e. added to /etc/systemd/syst
 
 **No clusters, no load balancers, just one living process.**
 
-Implemented commands: ls, start, stop, restart, delete.
+Implemented commands: ls, start, stop, restart, delete, log.
 
 Works on Linux (and Windows in plans).
 
@@ -48,3 +48,7 @@ Restarts process (by its name).
 ## delete
 
 Delete all traces of process (include logs).
+
+## log
+
+Tails log of selected process (`pm2sd log <name>`) or logs for all processes if nothing specified (`pm2sd log`).

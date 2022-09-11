@@ -3,7 +3,7 @@ const { resolve } = require('path');
 var clc = require("cli-color");
 const { runScript } = require('./rs');
 const { getCurrentUser, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils');
-const stop = require('./stop');
+const stop = require('./cmd_stop');
 
 async function start(serviceName) {
   let currentUser = await getCurrentUser();

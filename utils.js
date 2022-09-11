@@ -2,6 +2,14 @@ const os = require('os');
 const { runScript } = require('./rs');
 
 
+function formatL( s, len) {
+  s = '' + (s || '');
+  if (s.length > len) s = s.substring(0, len-1) +  '\u0324';
+  if (s.length < len) s = s + Array(len+1-s.length).join(' ');
+  return s;
+}
+
+
 let currentUser;
 async function getCurrentUser() {
   if (!currentUser) { // memoization of current user
@@ -36,7 +44,7 @@ function getSystemServiceList(name) {
 async function getServiceList(name) {
   let currentUser = await getCurrentUser();
 
-  return runScript(`systemctl ${currentUser==='root'?'':'--user'} list-unit-files`)
+  return runScript(`systemctl ${currentUser==='root'?'':'--user'} list-unit-files --type=service`)
     .then(res => {
 //console.log('res', res);
       let r = res.lines.join('')
@@ -70,6 +78,8 @@ function getServiceFolder(user) {
 
 
 module.exports = {
+  formatL,
+
   getCurrentUser,
   getServiceList,
   getSystemServiceList,

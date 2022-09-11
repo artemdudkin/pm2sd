@@ -1,6 +1,6 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
-const { getCurrentUser, getServiceList, getSystemServiceList } = require('./utils');
+const { formatL, getCurrentUser, getServiceList, getSystemServiceList } = require('./utils');
 
 
 const loader_frames = ['-', '\\', '|', '/'];
@@ -19,14 +19,6 @@ function loader_on(){
 function loader_off(){
   process.stdout.write('\u001B[?25h'); //show cursor
   clearInterval(loader_timer);
-}
-
-
-function formatL( s, len) {
-  s = '' + (s || '');
-  if (s.length > len) s = s.substring(0, len-1) +  '\u0324';
-  if (s.length < len) s = s + Array(len+1-s.length).join(' ');
-  return s;
 }
 
 

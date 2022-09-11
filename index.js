@@ -1,8 +1,9 @@
-const { ls, ls_sys } = require('./ls');
-const stop = require('./stop');
-const start = require('./start');
-const create = require('./create');
-const op_delete = require('./delete');
+const { ls, ls_sys } = require('./cmd_ls');
+const stop = require('./cmd_stop');
+const start = require('./cmd_start');
+const create = require('./cmd_create');
+const op_delete = require('./cmd_delete');
+const op_log = require('./cmd_log');
 const { getServiceList } = require('./utils');
 
 const args = process.argv.slice(2);
@@ -20,6 +21,14 @@ if (args[0] === 'ls') {
      }
   } else {
     ls('pm2sd', 'pm2sd');
+  }
+
+
+} else if (args[0] === 'log') {
+  if (args[1]) {
+    op_log('pm2sd-' + args[1]).catch(err => console.error('ERROR', err))
+  } else {
+    op_log().catch(err => console.error('ERROR', err))
   }
 
 
