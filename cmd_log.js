@@ -61,7 +61,7 @@ async function log(serviceName) {
     let fn = logFolder + 'pm2sd-'+name+'/output.log';
 
     tail(`tail -f ${fn}`, name, clc.greenBright)
-  }
+  })
 
 /*
   let journal = await runScript(`journalctl | grep pm2sd | tail`);
