@@ -5,7 +5,7 @@ var clc = require("cli-color");
 const { runScript } = require('./rs');
 const { getCurrentUser, getServiceList, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils');
 
-async function start(fn, opt) {
+async function create(fn, opt) {
   let currentUser = await getCurrentUser();
 
   if (!opt.user) opt.user = currentUser;
@@ -82,4 +82,4 @@ WantedBy=${currentUser==='root'?'multi-user.target':'default.target'}
   }
 }
 
-module.exports = start;
+module.exports = create;

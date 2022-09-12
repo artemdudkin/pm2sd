@@ -1,4 +1,4 @@
-const { ls, ls_sys } = require('./cmd_ls');
+const ls = process.platform === 'win32' ? require('./cmd_ls.win') : require('./cmd_ls');
 const stop = require('./cmd_stop');
 const start = require('./cmd_start');
 const create = require('./cmd_create');
@@ -10,9 +10,7 @@ const args = process.argv.slice(2);
 
 if (args[0] === 'ls') {
   if (args[1]) {
-     if (args[1] === '--system') {
-       ls_sys();
-     } else if (args[1] === '--all') {
+     if (args[1] === '--all') {
        ls();
      } else if (args[1].startsWith('-')) {
        console.error('ERROR: unknown option ' + args[1]);

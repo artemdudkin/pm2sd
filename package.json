@@ -1,7 +1,7 @@
 {
   "name": "pm2sd",
   "description": "Node.js Process Manager over systemd service",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "private": false,
   "main": "index.js",
   "bin": {
@@ -11,8 +11,7 @@
     "type": "git",
     "url": "https://github.com/artemdudkin/pm2sd"
   },
-  "keywords": [
-  ],
+  "keywords": [],
   "author": "Artem Dudkin <sheeva@list.ru>",
   "license": "MIT",
   "dependencies": {
