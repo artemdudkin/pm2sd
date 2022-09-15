@@ -4,13 +4,15 @@ const start = require('./cmd_start');
 const create = require('./cmd_create');
 const op_delete = require('./cmd_delete');
 const op_log = require('./cmd_log');
-const { getServiceList } = require('./utils');
+const { getServiceList, getCurrentUser } = require('./utils');
 
 /**
- * 'node index.js op1 op2 --op3=333 op4 -err --op5="55 55"' -> { opt: { op3: '333', op5: '55 55' },
- *                                                               err: [ '-err' ],
- *                                                               cmd: ['op1', 'op2', 'op4']
- *                                                             }
+ * Reads arguments,
+ * so this 'node index.js op1 op2 --op3=333 op4 -err --op5="55 55"' becomes
+ *  { cmd: ['op1', 'op2', 'op4'],
+ *    opt: { op3: '333', op5: '55 55' },
+ *    err: [ '-err' ]
+ *  }
  */
 const pargv = process.argv.slice(2);
 let args = {opt:{}, err:[], cmd:[]}
@@ -92,10 +94,11 @@ if (args.cmd[0] === 'ls') {
 
 
 } else if (args.cmd[0] === 'start') {
+  // only --name --user --description --time options
   let err = '';
   Object.keys(args.opt).forEach( key => {
-    if (['name', 'user', 'description', 'time'].indexOf(name) === -1) 
-      err = (err?'\n':'') + 'ERROR: unknown option ' + name;
+    if (['name', 'user', 'description', 'time'].indexOf(key) === -1) 
+      err = (err?'\n':'') + 'ERROR: unknown option ' + key;
   })
   if (err) {
     console.error(err);
@@ -103,18 +106,36 @@ if (args.cmd[0] === 'ls') {
   }
 
   if (args.cmd[1]) {
-      let possibleName = 'pm2sd-' + args.cmd[1];
       getServiceList()
       .then( res => {
+        let possibleName = 'pm2sd-' + args.cmd[1];
         if (res.indexOf(`${possibleName}.service`) !== -1) {
+          // start existing service
           return start(possibleName)
            .catch(err => console.error('ERROR', err))
            .finally(() => ls('pm2sd', 'pm2sd'));
         } else {
-          if (!args.opt.name) opt.name = 'pm2sd-' + rnd(10000, 99999);
-          return create(args.cmd[1], args.opt)
-           .catch(err => console.error('ERROR', err))
-           .finally(() => ls('pm2sd', 'pm2sd'));
+          // or create new service
+          if (args.cmd[1].endsWith('.js') || args.cmd[1].endsWith('.sh')) {
+            // node.js app or bash script
+
+            if (!args.opt.name) {
+              possibleName = 'pm2sd-' + args.cmd[1].replace(/\.js$/, '').replace(/\.sh$/, '');
+              if (res.indexOf(possibleName) === -1) {
+                args.opt.name = possibleName;
+              } else {
+                args.opt.name = possibleName + rnd(10000, 99999);
+              }
+            }
+            args.opt.name = (args.opt.name.startsWith('pm2sd-')?'':'pm2sd-') + args.opt.name;
+
+            return create(args.cmd[1], args.opt)
+             .catch(err => console.error('ERROR', err))
+             .finally(() => ls('pm2sd', 'pm2sd'));
+          } else {
+            // whatever it was
+            console.error('Cannot determine script type (only .js and .sh implemented).')
+          }
         }
       })
   } else {

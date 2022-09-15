@@ -5,6 +5,10 @@ var clc = require("cli-color");
 const { runScript } = require('./rs');
 const { getCurrentUser, getServiceList, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils');
 
+/**
+ * @param {String} fn
+ * @param {Object} opt {name, user, description, time}
+ */
 async function create(fn, opt) {
   let currentUser = await getCurrentUser();
 
@@ -31,28 +35,25 @@ async function create(fn, opt) {
     let logFolder = getLogFolder(currentUser);
     let serviceFolder = getServiceFolder(currentUser);
 
-    fs.writeFileSync(`${scriptFolder}${opt.name}.sh`, `#!/usr/bin/env node\n\nrequire(\'${resolve(fn)}\');\n`, {mode:0o755, flag:'w'})
+    if (fn.endsWith('.js')) {
+      fs.writeFileSync(`${scriptFolder}${opt.name}.sh`, `#!/usr/bin/env node\n\nrequire(\'${resolve(fn)}\');\n`, {mode:0o755, flag:'w'})
+    } else {
+      fs.copyFileSync(fn, `${scriptFolder}${opt.name}.sh`)
+    }
     if (opt.user!=='root') await runScript(`chown ${opt.user} ${scriptFolder}${opt.name}.sh`);
 
     fs.writeFileSync(`${scriptFolder}${opt.name}.service.sh`, `#!/bin/bash
 
-# env for nvm-based node
+${fn.endsWith('.js') ? 
+`# env for nvm-based node
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-#redirect logs to specified folder
-exec 1>>${logFolder}${opt.name}/output.log
-exec 2>&1
-
-#add timestamp to logs
-adddate() {
-    while IFS= read -r line; do
-        printf '%s %s\\n' "$(date)" "$line";
-    done
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion`
+:''
 }
 
-${scriptFolder}${opt.name}.sh ${opt.time?'| adddate':''} &
+${scriptFolder}${opt.name}.sh ${opt.time? `2>&1 | while IFS= read -r line; do printf \'%s %s\n\' "$(date +\'%Y-%m-%d %T %z\')" "$line"; done | tee -a ${logFolder}${opt.name}/output.log > /dev/null` : `>>${logFolder}${opt.name}/output.log 2>&1`} &
+
     `, {mode:0o755})
     if (opt.user!=='root') await runScript(`chown ${opt.user} ${scriptFolder}${opt.name}.service.sh`);
 
