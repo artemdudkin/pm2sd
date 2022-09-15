@@ -1,3 +1,4 @@
+const fs = require("fs");
 const clc = require("cli-color");
 const { runScript } = require('./rs');
 const { formatL, getCurrentUser, getServiceList, getLogFolder } = require('./utils');
@@ -31,7 +32,7 @@ async function systemdIds() {
   let res = await runScript(`ps aux | grep systemd`);
   res = res.lines.join('').split('\n')
   res = res
-  .filter(i=>i.indexOf('systemd-journald')===-1 && i.indexOf('systemd-udevd')===-1 && i.indexOf('systemd-logind')===-1 && i.indexOf('dbus-daemon')===-1 && i.indexOf('grep')===-1&& i.indexOf('EXIT')===-1)
+  .filter(i=>i.indexOf('systemd-journald')===-1 && i.indexOf('systemd-udevd')===-1 && i.indexOf('systemd-logind')===-1 && i.indexOf('dbus-daemon')===-1 && i.indexOf('grep')===-1&& i.indexOf('EXIT')===-1&& i.indexOf('systemd-timesyncd')===-1&& i.indexOf('systemd-resolved')===-1)
   .map(i=>{
     let p=i.indexOf(' ');
     return i.substring(p+1, i.length).trim().split(' ')[0];
@@ -45,7 +46,7 @@ async function log(serviceName) {
   let logFolder = getLogFolder(currentUser);
   let serviceList = (serviceName ? [serviceName] : await getServiceList('pm2sd'));
 
-  let tname = (serviceName ? `[${serviceName} ] process`: '[all] processes');
+  let tname = (serviceName ? `[${serviceName}] process`: '[all] processes');
   console.log(clc.blackBright(`\n[TAILING] Tailing last 10 lines for ${tname}`));
 
   let ids = await systemdIds()
@@ -56,7 +57,11 @@ async function log(serviceName) {
     let name = service.replace(/^pm2sd-/, '').replace(/.service$/, '');
     let fn = logFolder + 'pm2sd-'+name+'/output.log';
 
-    tail(`tail -f ${fn}`, fn, name, clc.greenBright)
+    if (!fs.existsSync(fn)) {
+      console.log(clc.red(`\n'${fn}' does not exists. Cannot read log for 'pm2sd-${name}'.`))
+    } else {
+      tail(`tail -f ${fn}`, fn, name, clc.greenBright)
+    }
   })
 }
 

@@ -107,7 +107,17 @@ if (args[0] === 'ls') {
 
 
 } else {
-  console.log('\n    Usage: pm2sd [ls|start|stop|restart|delete] [options]\n');
+  console.log(`
+    Usage: pm2sd <command> [name/filename] [options]
+
+    Commands: ls|start|stop|restart|delete
+
+    Options: --all
+             --name
+             --user
+             --time
+             --description
+`);
 }
 
 

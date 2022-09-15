@@ -1,6 +1,6 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
-const { loader, printLs, formatMem } = require('./utils');
+const { loader, printLs, formatMem, relativeTime } = require('./utils');
 
 
 async function getServiceList(name) {
@@ -25,6 +25,7 @@ async function getServiceList(name) {
         r.type = r.type.substring( r.type.indexOf(' ')+1, r.type.length).trim()
         r.state = (lineSTATE.split(':')[1] || '').trim()
         r.state = r.state.substring( r.state.indexOf(' ')+1, r.state.length).trim()
+        r.active = r.state
 
         while (++i < lines.length && lines[i].replace(/\r/g, '').length !== 0) {
           let line = lines[i].replace(/\r/g, '');
@@ -55,11 +56,14 @@ async function getServiceList(name) {
 async function getServiceListInfo(res, prefix) {
     let r = Promise.resolve();
 
+/*
     return runScript(`tasklist`)
     .then(tl => {
       let ret = tl.lines.join('').replace(/\r/g, '').split('\n').slice(4).map(line => {
+        let r = {}
+
         let pos = line.indexOf(' ');
-        let r = {name : line.substring(0, pos)}
+        r.name = line.substring(0, pos)
         line = line.substring(pos+1, line.length).trim();
 
         pos = line.indexOf(' ');
@@ -82,27 +86,47 @@ async function getServiceListInfo(res, prefix) {
           service.memory = (ret.filter( r => +r.pid === +service.pid)[0] || {}).memory || '';
         }
       })
+*/
 
-/*
-      res.forEach( service => {
-        r = r.then(() => {
-          if (+service.pid) {
-            return runScript(`wmic process where processid=${service.pid} get WorkingSetSize`)
-            .then(res => {
-              let wss = res.lines.join('').replace(/\r/g, '').split('\n')[1];
-              service.cpu = formatMem(Math.round(wss / 100) / 10);
-console.log(service.name, service.pid, 'res', wss, formatMem(Math.round(wss / 100) / 10))
-            })
-            .catch(res => {
-            });
-          }
+      r = r.then(()=>{
+        let p = 'processid=' + res.filter( service => (+service.pid)).map(service => (+service.pid)).join(' or processid=');
+        return runScript(`wmic process where (${p}) get CreationDate, ProcessId, WorkingSetSize`)
+        .then(data => {
+              let dateList = data.lines.join('').replace(/\r/g, '').split('\n');
+              dateList = dateList.slice(1, dateList.length);
+              let d = dateList.map(line => {
+                let pos = line.indexOf(' ');
+                let date = line.substring(0, pos).trim();
+
+                line = line.substring(pos+1, line.length).trim();
+                pos = line.indexOf(' ');
+                let pid = line.substring(0, pos).trim();
+                let mem = line.substring(pos+1, line.length).trim();
+
+                let year = date.substring(0, 4);
+                let mon = date.substring(4, 6);
+                let day = date.substring(6, 8);
+                let hour = date.substring(8, 10);
+                let minute = date.substring(10, 12);
+                let second = date.substring(12, 14);
+                let uptime = relativeTime((new Date(year, mon-1, day, hour, minute, second)).getTime());
+
+                return { pid, mem, uptime }
+              })
+
+              res.forEach( service => {
+                if (+service.pid) {
+                  service.uptime = (d.filter( r => +r.pid === +service.pid)[0] || {}).uptime || '';
+                  service.memory = formatMem((d.filter( r => +r.pid === +service.pid)[0] || {}).mem / 1000);
+                }
+              })
         })
       })
-*/
+
       return r.then(()=>{
         return res;
       })
-    })
+//    })
 }
 
 

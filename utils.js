@@ -27,6 +27,36 @@ const loader = {
 }
 
 
+
+function relativeTime(timestamp) {
+  const msPerMinute = 60 * 1000;
+  const msPerHour = msPerMinute * 60;
+  const msPerDay = msPerHour * 24;
+  const msPerMonth = msPerDay * 30;
+  const msPerYear = msPerDay * 365;
+
+  let elapsed = Date.now() - timestamp;
+
+  const sign = elapsed > 0 ? '' : '-';
+
+  elapsed = Math.abs(elapsed);
+
+  if (elapsed < msPerMinute) {
+    return sign + Math.floor(elapsed / 1000) + "s";
+  } else if (elapsed < msPerHour) {
+    return sign + Math.floor(elapsed / msPerMinute) + "min";
+  } else if (elapsed < msPerDay) {
+    return sign + Math.floor(elapsed / msPerHour) + "h " + Math.floor(elapsed % msPerHour / msPerMinute) + 'min';
+  } else if (elapsed < msPerMonth) {
+    return sign + Math.floor(elapsed / msPerDay) + "D " + Math.floor(elapsed % msPerDay / msPerHour) + 'h';
+  } else if (elapsed < msPerYear) {
+    return sign + Math.floor(elapsed / msPerMonth) + "M " + Math.floor(elapsed % msPerMonth / msPerDay) + 'D';
+  } else {
+    return sign + Math.floor(elapsed / msPerYear) + "Y " + Math.floor(elapsed % msPerYear / msPerMonth) + 'M';
+  }
+}
+
+
 /**
  * @param {Object} result [{name, active, enabled, uptime, pid, memory, user, cpu}, ...]
  */
@@ -43,14 +73,14 @@ function printLs(result) {
     name = formatL( name, 20);
     pid  = formatL( pid, 8); 
     uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W'), 6);
-    let status = active==='active' ? clc.green('active   ') : clc.red(formatL(active, 9));
+    let status = (active==='active' || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 9));
     enabled = enabled==='enabled' ? clc.green('enabled  ') : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 9));
     let mem = formatL( memory.replace('M', 'mb'), 8);
     user = formatL(user, 8);
     cpu = formatL(cpu, 8);
 
-    if (active!=='active') pid = clc.red(pid);
-    if (active!=='active') uptime = clc.red(uptime);
+    if (active!=='active' && active!=='RUNNING') pid = clc.red(pid);
+    if (active!=='active' && active!=='RUNNING' ) uptime = clc.red(uptime);
 
     let bb = clc.blackBright('│');
     console.log(`${bb} ${name} ${bb} ${pid} ${bb} ${uptime} ${bb} ${status} ${bb} ${enabled} ${bb} ${cpu} ${bb} ${mem} ${bb} ${user} ${bb}`);
@@ -60,6 +90,10 @@ function printLs(result) {
 
 
 function formatMem( mem) {
+  if (typeof mem === 'undefined') {
+    return mem;
+  }
+
   if (mem < 1000) {
     return mem+'kb'
   } else if (mem < 1000000) {
@@ -131,6 +165,7 @@ function getServiceFolder(user) {
 
 module.exports = {
   loader,
+  relativeTime,
   formatMem,
   formatL,
   printLs,
