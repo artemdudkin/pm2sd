@@ -3,7 +3,7 @@ const { runScript } = require('./rs');
 const { loader, printLs, formatMem, relativeTime } = require('./utils');
 
 
-async function getServiceList(name) {
+async function getServiceList(aName) {
   return runScript(`sc queryex type=service state=all`)
     .then(res => {
       let lines = res.lines.join('').split('\n').filter(i=>i.indexOf('EXIT')===-1);
@@ -34,7 +34,12 @@ async function getServiceList(name) {
           value = (value || '').trim();
           if (name === 'PID' || name.startsWith('ID_')) r.pid=value
         }
-        if (!r.type.startsWith('WIN32_SHARE_PROCESS')) ret.push(r);//console.log( JSON.stringify(r));
+        if (!r.type.startsWith('WIN32_SHARE_PROCESS')) {
+//console.log(r.name, aName, r.name.indexOf(aName));
+          if (!aName || r.name.indexOf(aName) !== -1) {
+            ret.push(r);
+          }
+        }
       }
       return ret.sort((a, b) => {
        const nameA = a.name.toUpperCase();
@@ -89,9 +94,13 @@ async function getServiceListInfo(res, prefix) {
 */
 
       r = r.then(()=>{
-        let p = 'processid=' + res.filter( service => (+service.pid)).map(service => (+service.pid)).join(' or processid=');
-        return runScript(`wmic process where (${p}) get CreationDate, ProcessId, WorkingSetSize`)
-        .then(data => {
+//        console.log('res', res);
+
+        let serviceWithPIDList = res.filter( service => (+service.pid));
+        if (serviceWithPIDList.length > 0) {
+          let p = 'processid=' + serviceWithPIDList.map(service => (+service.pid)).join(' or processid=');
+          return runScript(`wmic process where (${p}) get CreationDate, ProcessId, WorkingSetSize`)
+          .then(data => {
               let dateList = data.lines.join('').replace(/\r/g, '').split('\n');
               dateList = dateList.slice(1, dateList.length);
               let d = dateList.map(line => {
@@ -120,7 +129,8 @@ async function getServiceListInfo(res, prefix) {
                   service.memory = formatMem((d.filter( r => +r.pid === +service.pid)[0] || {}).mem / 1000);
                 }
               })
-        })
+          })
+        }
       })
 
       return r.then(()=>{
@@ -134,6 +144,7 @@ async function ls(name, prefix) {
   loader.on();
   try {
     let s = await getServiceList(name)
+//console.log('s', s);
     let res = await getServiceListInfo(s, prefix)
     loader.off();
     printLs(res)

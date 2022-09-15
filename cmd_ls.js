@@ -87,10 +87,11 @@ async function getServiceListInfo(res, prefix) {
 }
 
 
-async function ls(name, prefix) {
+async function ls(name, prefix, filterStr) {
   loader.on();
   try {
     let s = await getServiceList(name)
+    if (filterStr) s = s.filter(i=>i.indexOf(filterStr)!==-1)
     let res = await getServiceListInfo(s, prefix)
     loader.off();
     printLs(res)

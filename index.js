@@ -6,33 +6,61 @@ const op_delete = require('./cmd_delete');
 const op_log = require('./cmd_log');
 const { getServiceList } = require('./utils');
 
-const args = process.argv.slice(2);
+/**
+ * 'node index.js op1 op2 --op3=333 op4 -err --op5="55 55"' -> { opt: { op3: '333', op5: '55 55' },
+ *                                                               err: [ '-err' ],
+ *                                                               cmd: ['op1', 'op2', 'op4']
+ *                                                             }
+ */
+const pargv = process.argv.slice(2);
+let args = {opt:{}, err:[], cmd:[]}
+for (var i=0; i<pargv.length; i++) {
+  let o = pargv[i];
+  if (o.startsWith('--')) {
+    let p = o.indexOf('=');
+    if (p===-1) p = o.length;
+    let name = o.substring(2, p);
+    let value = o.substring(p+1, o.length);
+    args.opt[name] = value ? value : true;
+  } else if (o.startsWith('-')) {
+    args.err.push(o);
+  } else {
+    args.cmd.push(o);
+  }
+}
 
-if (args[0] === 'ls') {
-  if (args[1]) {
-     if (args[1] === '--all') {
-       ls();
-     } else if (args[1].startsWith('-')) {
-       console.error('ERROR: unknown option ' + args[1]);
+if (args.err.length > 0) {
+  console.error('ERROR: unknown option' + (args.err.length>1?'s ':' ') + args.err.join(', '));
+  return;
+}
+
+if (args.cmd[0] === 'ls') {
+  if (args.opt['all']) {
+     if (args.cmd.length > 1) {
+       ls(args.cmd[1]);
      } else {
-       ls(args[1]);
+       ls();
      }
   } else {
-    ls('pm2sd', 'pm2sd');
+    if (args.cmd.length > 1) {
+      ls('pm2sd', 'pm2sd', args.cmd[1]);
+    } else {
+      ls('pm2sd', 'pm2sd');
+    }
   }
 
 
-} else if (args[0] === 'log') {
-  if (args[1]) {
-    op_log('pm2sd-' + args[1]).catch(err => console.error('ERROR', err))
+} else if (args.cmd[0] === 'log') {
+  if (args.cmd[1]) {
+    op_log('pm2sd-' + args.cmd[1]).catch(err => console.error('ERROR', err))
   } else {
     op_log().catch(err => console.error('ERROR', err))
   }
 
 
-} else if (args[0] === 'stop') {
-  if (args[1]) {
-    stop('pm2sd-' + args[1])
+} else if (args.cmd[0] === 'stop') {
+  if (args.cmd[1]) {
+    stop('pm2sd-' + args.cmd[1])
       .catch(err => console.error('ERROR', err))
       .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
@@ -40,9 +68,9 @@ if (args[0] === 'ls') {
   }
 
 
-} else if (args[0] === 'restart') {
-  if (args[1]) {
-    let name = 'pm2sd-' + args[1];
+} else if (args.cmd[0] === 'restart') {
+  if (args.cmd[1]) {
+    let name = 'pm2sd-' + args.cmd[1];
     console.log(`Stoping service ${name}...`);
     stop(name, true)
      .then(()=>start(name))
@@ -53,9 +81,9 @@ if (args[0] === 'ls') {
   }
 
 
-} else if (args[0] === 'delete') {
-  if (args[1]) {
-    op_delete('pm2sd-' + args[1])
+} else if (args.cmd[0] === 'delete') {
+  if (args.cmd[1]) {
+    op_delete('pm2sd-' + args.cmd[1])
      .catch(err => console.error('ERROR', err))
      .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
@@ -63,30 +91,19 @@ if (args[0] === 'ls') {
   }
 
 
-} else if (args[0] === 'start') {
-  let opt = {}
-  args.slice(2).forEach(o => {
-    if (opt) {
-      if (o.startsWith('--')) {
-        let p = o.indexOf('=');
-        if (p===-1) p = o.length;
-        let name = o.substring(2, p);
-        if (['name', 'user', 'description', 'time'].indexOf(name) === -1) {
-          console.error('ERROR: unknown option ' + name);
-        } else {
-          let value = o.substring(p+1, o.length);
-          if (name==='name' && value) value='pm2sd-'+value;
-          opt[name] = value ? value : true;
-        }
-      } else {
-        console.error('ERROR: unknown option ' + o);
-        opt = undefined;
-      }
-    }
+} else if (args.cmd[0] === 'start') {
+  let err = '';
+  Object.keys(args.opt).forEach( key => {
+    if (['name', 'user', 'description', 'time'].indexOf(name) === -1) 
+      err = (err?'\n':'') + 'ERROR: unknown option ' + name;
   })
-  if (opt) {
-    if (args[1]) {
-      let possibleName = 'pm2sd-' + args[1];
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  if (args.cmd[1]) {
+      let possibleName = 'pm2sd-' + args.cmd[1];
       getServiceList()
       .then( res => {
         if (res.indexOf(`${possibleName}.service`) !== -1) {
@@ -94,17 +111,15 @@ if (args[0] === 'ls') {
            .catch(err => console.error('ERROR', err))
            .finally(() => ls('pm2sd', 'pm2sd'));
         } else {
-          if (!opt.name) opt.name = 'pm2sd-' + rnd(10000, 99999);
-          return create(args[1], opt)
+          if (!args.opt.name) opt.name = 'pm2sd-' + rnd(10000, 99999);
+          return create(args.cmd[1], args.opt)
            .catch(err => console.error('ERROR', err))
            .finally(() => ls('pm2sd', 'pm2sd'));
         }
       })
-    } else {
-      console.error('ERROR: there is no filename after "start"');
-    }
+  } else {
+    console.error('ERROR: there is no filename after "start"');
   }
-
 
 } else {
   console.log(`
