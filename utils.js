@@ -61,10 +61,10 @@ function relativeTime(timestamp) {
  * @param {Object} result [{name, active, enabled, uptime, pid, memory, user, cpu}, ...]
  */
 function printLs(result) {
-  let header = clc.blackBright(`┌──────────────────────┬──────────┬────────┬───────────┬───────────┬──────────┬──────────┬──────────┐\n`)+
-               clc.blackBright(`│ `+clc.cyanBright(`name`)+`                 │ `+clc.cyanBright(`pid`)+`      │ `+clc.cyanBright(`uptime`)+` │ `+clc.cyanBright(`status`)+`    │ `+clc.cyanBright(`startup`)+`   │ `+clc.cyanBright(`%cpu`)+`     │ `+clc.cyanBright(`mem`)+`      │ `+clc.cyanBright(`user`)+`     │\n`)
-  let header2= clc.blackBright(`├──────────────────────┼──────────┼────────┼───────────┼───────────┼──────────┼──────────┼──────────┤`);
-  let footer = clc.blackBright(`└──────────────────────┴──────────┴────────┴───────────┴───────────┴──────────┴──────────┴──────────┘`);
+  let header = clc.blackBright(`┌──────────────────────┬──────────┬────────┬────────────┬───────────┬──────────┬──────────┬──────────┐\n`)+
+               clc.blackBright(`│ `+clc.cyanBright(`name`)+`                 │ `+clc.cyanBright(`pid`)+`      │ `+clc.cyanBright(`uptime`)+` │ `+clc.cyanBright(`status`)+`     │ `+clc.cyanBright(`startup`)+`   │ `+clc.cyanBright(`%cpu`)+`     │ `+clc.cyanBright(`mem`)+`      │ `+clc.cyanBright(`user`)+`     │\n`)
+  let header2= clc.blackBright(`├──────────────────────┼──────────┼────────┼────────────┼───────────┼──────────┼──────────┼──────────┤`);
+  let footer = clc.blackBright(`└──────────────────────┴──────────┴────────┴────────────┴───────────┴──────────┴──────────┴──────────┘`);
 
   console.log(header + (result.length>0 ? header2 : '') + (result.length==0 ? footer : ''));
 
@@ -73,11 +73,11 @@ function printLs(result) {
     name = formatL( name, 20);
     pid  = formatL( pid, 8); 
     uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W'), 6);
-    let status = (active==='active' || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 9));
+    let status = (active==='active' || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 10));
     enabled = enabled==='enabled' ? clc.green('enabled  ') : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 9));
     let mem = formatL( memory.replace('M', 'mb'), 8);
     user = formatL(user, 8);
-    cpu = formatL(cpu, 8);
+    cpu = formatL(memory ? cpu : '', 8);
 
     if (active!=='active' && active!=='RUNNING') pid = clc.red(pid);
     if (active!=='active' && active!=='RUNNING' ) uptime = clc.red(uptime);
@@ -94,7 +94,7 @@ function formatMem( mem) {
     return mem;
   }
 
-  if (mem < 1000) {
+  if (mem < 100) {
     return mem+'kb'
   } else if (mem < 1000000) {
     return Math.round(mem/100)/10+'mb'
@@ -105,7 +105,7 @@ function formatMem( mem) {
 
 
 function formatL( s, len) {
-  s = '' + (s || '');
+  s = '' + (typeof s === 'undefined' ? '' : s);
   if (s.length > len) s = s.substring(0, len-1) +  '\u0324';
   if (s.length < len) s = s + Array(len+1-s.length).join(' ');
   return s;

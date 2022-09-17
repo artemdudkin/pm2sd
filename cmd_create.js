@@ -23,7 +23,7 @@ async function create(fn, opt) {
   if (res.indexOf(`${opt.name}.service`) !== -1) {
     throw new Error(`Service ${opt.name} already exists`);
   } else {
-    if (!fs.existsSync(fn)) {
+    if ((fn.endsWith('.js') || fn.endsWith('.js')) && !fs.existsSync(fn)) {
       throw new Error(`File '${fn}' does not exists`);
     }
 
@@ -37,8 +37,10 @@ async function create(fn, opt) {
 
     if (fn.endsWith('.js')) {
       fs.writeFileSync(`${scriptFolder}${opt.name}.sh`, `#!/usr/bin/env node\n\nrequire(\'${resolve(fn)}\');\n`, {mode:0o755, flag:'w'})
-    } else {
+    } else if (fn.endsWith('.sh')) {
       fs.copyFileSync(fn, `${scriptFolder}${opt.name}.sh`)
+    } else {
+      fs.writeFileSync(`${scriptFolder}${opt.name}.sh`, `#!/bin/bash\n\n${fn}\n`, {mode:0o755, flag:'w'})
     }
     if (opt.user!=='root') await runScript(`chown ${opt.user} ${scriptFolder}${opt.name}.sh`);
 

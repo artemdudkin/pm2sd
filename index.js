@@ -116,7 +116,7 @@ if (args.cmd[0] === 'ls') {
            .finally(() => ls('pm2sd', 'pm2sd'));
         } else {
           // or create new service
-          if (args.cmd[1].endsWith('.js') || args.cmd[1].endsWith('.sh')) {
+//          if (args.cmd[1].endsWith('.js') || args.cmd[1].endsWith('.sh')) {
             // node.js app or bash script
 
             if (!args.opt.name) {
@@ -132,10 +132,10 @@ if (args.cmd[0] === 'ls') {
             return create(args.cmd[1], args.opt)
              .catch(err => console.error('ERROR', err))
              .finally(() => ls('pm2sd', 'pm2sd'));
-          } else {
+//          } else {
             // whatever it was
-            console.error('Cannot determine script type (only .js and .sh implemented).')
-          }
+//            console.error('Cannot determine script type (only .js and .sh implemented).')
+//          }
         }
       })
   } else {
