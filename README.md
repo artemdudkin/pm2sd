@@ -1,5 +1,5 @@
 # pm2sd
-PM2SD is a process manager for Node.js applications (or bash scripts) built over `systemd`. It is inspired by PM2, but not that complex and uses far less memory (i.e. zero memory as it is wrapper for systemd service). I love PM2, but cannot use it on small VPS for pet projects, so meet the PM2SD!
+PM2SD is a process manager for Node.js applications (or other scripts) built over `systemd`. It is inspired by PM2, but not that complex and uses far less memory (i.e. zero memory as it is wrapper for systemd service). I love PM2, but cannot use it on small VPS for pet projects, so meet the PM2SD!
 
 You can start process as simple as
 
@@ -13,7 +13,7 @@ Process will be started as linux system service (i.e. added to /etc/systemd/syst
 
 Implemented commands: ls, start, stop, restart, delete, log.
 
-Works on Linux (and Windows in plans).
+Works on Linux (and Windows in plans :construction: :hammer:).
 
 ## ls
 
