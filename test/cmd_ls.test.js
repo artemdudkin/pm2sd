@@ -25,7 +25,7 @@ const ret_xyz = '* xyz-vpn.service - XYZ VPN\n'+
 '      Tasks: 1 (limit: 1102)\n'+
 '     Memory: 2.7M\n'+
 '     CGroup: /system.slice/xyz-vpn.service\n'+
-'             `-77636 openconnect vpn.xyz.com\n'+
+'             `-77636 openconnect vpn.xyz.com --servercert pin-sha256:HleIYU99zl8/49HJykDwyyO3w+bLgTBC6+oX2vtlUcM=\n'+
 '\n'+
 'Sep 24 12:55:56 vds2318343 systemd[1]: Starting NLMK VPN...\n'+
 'Sep 24 12:55:56 vds2318343 systemd[1]: Started NLMK VPN.\n'+

@@ -14,8 +14,8 @@ function processLines(lines, prefix) {
         for (let i=0; i<lines.length; i++){
           let line = lines[i];
           let p = line.indexOf(':');
-          let name = (p !== -1 ? line.substring(0, p).trim() : '')
-          if (p !== -1) {
+          let name = (p !== -1 && p<13? line.substring(0, p).trim() : '')
+          if (p !== -1 && p<13) {
             ret[name] = line.substring(p+1, line.length).trim();
           } else {
             if (cgroup_line_passed && !empty_line_passed) {
