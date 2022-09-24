@@ -35,7 +35,7 @@ describe("#utils.servicelist", function () {
     return getServiceList()
     .then(res => {
       expect(commands).to.deep.equal(['whoami', 'systemctl  list-unit-files --type=service'])
-      expect(res).to.deep.equal(['accounts-daemon.service', 'apparmor.service', 'apt-daily-upgrade.service'])
+      expect(res).to.deep.equal(['accounts-daemon.service', 'apparmor.service'])
     })
   });
 

@@ -15,7 +15,7 @@ async function getServiceList(name) {
                        .split('\n')
                        .filter(i=>i.indexOf('EXIT')!==0 && i.indexOf('UNIT')!==0 && i.indexOf('files listed.')===-1 )
                        .filter(i=>{
-                         let type = i.substring(i.indexOf(' '), i.length).trim();
+                         let type = i.substring(i.indexOf(' '), i.length).trim().split(' ')[0];
                          return type !=='static' && type !== ''
                        })
                        .map(i=>i.split(' ')[0].trim())
