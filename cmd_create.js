@@ -103,20 +103,20 @@ WantedBy=${currentUser==='root'?'multi-user.target':'default.target'}
       copytruncate
       notifempty
 }\n`;
-    if (currentUser==='root') {
-      if (!fs.existsSync('/etc/logrotate.d')) {
-        console.log(clc.yellowBright('\nCannot find logrotate config. Please install logrotate.\n'));
-      } else {
+    if (!fs.existsSync('/etc/logrotate.d')) {
+      console.log(clc.yellowBright('\nCannot find logrotate config. Please install logrotate.\n'));
+    } else {
+      if (currentUser==='root') {
         if (!fs.existsSync('/etc/logrotate.d/pm2sd')) {
           fs.writeFileSync('/etc/logrotate.d/pm2sd', `/var/log/pm2sd-*/*.log\n${config}`);
         }
-      }
-    } else {
+      } else {
         if (!fs.existsSync(`${os.homedir()}/.pm2sd-logrotate.conf`)) {
           fs.writeFileSync(`${os.homedir()}/.pm2sd-logrotate.conf`, `~/log/pm2sd-*/*.log\n${config}`);
           fs.writeFileSync(`${os.homedir()}/.pm2sd-logrotate-state`, '');
           await runScript('(crontab -l; echo "1 * * * * /sbin/logrotate -s ~/.pm2sd-logrotate-state ~/.pm2sd-logrotate.conf")|awk \'!x[$0]++\'|crontab -');
         }
+      }
     }
   }
 }

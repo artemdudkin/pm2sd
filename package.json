@@ -1,11 +1,14 @@
 {
   "name": "pm2sd",
   "description": "Node.js Process Manager over systemd service",
-  "version": "0.0.23",
+  "version": "0.0.25",
   "private": false,
   "main": "index.js",
   "bin": {
     "pm2sd": "bin/pm2sd"
+  },
+  "scripts": {
+    "test": "mocha test/**.test.js"
   },
   "repository": {
     "type": "git",
@@ -15,6 +18,9 @@
   "author": "Artem Dudkin <sheeva@list.ru>",
   "license": "MIT",
   "dependencies": {
-    "cli-color": "^2.0.3"
+    "chai": "^4.3.6",
+    "cli-color": "^2.0.3",
+    "mocha": "^10.0.0",
+    "proxyquire": "^2.1.3"
   }
 }

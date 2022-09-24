@@ -1,26 +1,39 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
-const { loader, formatMem, formatL, printLs, getCurrentUser, getServiceList, getSystemServiceList } = require('./utils');
+const { loader, formatMem, formatL, printLs, getCurrentUser, getServiceList } = require('./utils');
 
 
 function processLines(lines, prefix) {
         lines = lines.join('').split('\n')
 
         // split lines to get key-value according with template "key:value"
-        // (and also put pid of children process to 'children' field (ids was after "└─" after CGroup)
+        // (and try to read list of children pids under CGroup line before empty line)
         let ret = {}
-        lines.forEach(line => {
+        let empty_line_passed = false;
+        let cgroup_line_passed = false;
+        for (let i=0; i<lines.length; i++){
+          let line = lines[i];
           let p = line.indexOf(':');
+          let name = (p !== -1 ? line.substring(0, p).trim() : '')
           if (p !== -1) {
-            ret[line.substring(0, p).trim()] = line.substring(p+1, line.length).trim();
+            ret[name] = line.substring(p+1, line.length).trim();
           } else {
-            p = line.indexOf('─');
-            if (p !== -1) {
-              if (!ret.children) ret.children = []
-              ret.children.push( line.substring(p+1, line.length).trim().split(' ')[0]);
+            if (cgroup_line_passed && !empty_line_passed) {
+              let pdigit = -1;
+              const matches = [...line.matchAll(/[0-9]/g)];
+              if (matches.length) pdigit = matches.at(0).index;
+              if (pdigit !== -1) {
+                let pspace = line.indexOf(' ', pdigit);
+                if (pspace !== -1) {
+                  if (!ret.children) ret.children = []
+                  ret.children.push( line.substring(pdigit, pspace));
+                }
+              }
             }
           }
-        })
+          if (line.length === 0) empty_line_passed = true;
+          if (name.toLowerCase() === 'cgroup') cgroup_line_passed = true;
+        }
 
         let rname = (lines[0].split('.')[0].split(' ')[1] || '')
         if (prefix) rname = rname.replace(prefix+'-', '')
@@ -113,7 +126,7 @@ async function getServiceListInfo(res, prefix) {
         let pids = (res.pid ? [res.pid] : []).concat( res.children || []) //and all pids of childrens
         pids = [...new Set(pids)];
 
-        let mem = 0;            	
+        let mem = 0;
         let cpu = 0;
         let user = '';
         pids.forEach( pid => {
@@ -124,7 +137,7 @@ async function getServiceListInfo(res, prefix) {
             if (!user) user = pi.user;
           }
         })
-        res.memory = mem ? formatMem(mem) : '';
+        res.memory = mem ? formatMem(mem) : res.memory;
         res.cpu = cpu;
         res.user = user;
       })
