@@ -13,7 +13,7 @@ Process will be started as linux system service (i.e. added to /etc/systemd/syst
 
 Implemented commands: ls, start, stop, restart, delete, log.
 
-Works on Linux (and Windows in plans :construction: :hammer:).
+Works on Linux (tested on Ubuntu, CentOS) and Windows in plans :construction: :hammer:.
 
 ## ls
 
@@ -35,7 +35,6 @@ Starts new process. Avaliable options: name, description, time, user (i.e. servi
 ```bash
 $ pm2sd start index.js --name=test --user=node
 ```
-Tested on CentOS and Ubuntu.
 
 ## stop
 
