@@ -58,6 +58,18 @@ function relativeTime(timestamp) {
 
 
 /**
+ * @param {Array} warnings (array of String)
+ */
+function printWarnings(warnings) {
+  if (warnings.length > 0) {
+//    console.log('  '); // to overwrite frames of loader
+    warnings.forEach( warning => console.warn(clc.blackBright('** '+warning + ' **')))
+//    console.log();
+  }
+}
+
+
+/**
  * @param {Object} result [{name, active, enabled, uptime, pid, memory, user, cpu}, ...]
  */
 function printLs(result) {
@@ -74,10 +86,10 @@ function printLs(result) {
     pid  = formatL( pid, 8); 
     uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W').replace(' week', 'W'), 6);
     let status = (active==='active' || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 10));
-    enabled = enabled==='enabled' ? clc.green('enabled  ') : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 9));
+    enabled = enabled==='enabled' || enabled==='Auto' ? clc.green(formatL(enabled, 9)) : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 9));
     let mem = formatL( memory.replace('M', 'mb'), 8);
-    user = formatL(user, 8);
-    cpu = formatL(memory ? cpu : '', 8);
+    user = formatR(user, 8);
+    cpu = formatL(memory && cpu ? Math.round(cpu*10)/10 : '', 8);
 
     if (active!=='active' && active!=='RUNNING') pid = clc.red(pid);
     if (active!=='active' && active!=='RUNNING' ) uptime = clc.red(uptime);
@@ -112,6 +124,15 @@ function formatL( s, len) {
 }
 
 
+function formatR( s, len) {
+  s = '' + (typeof s === 'undefined' ? '' : s);
+  if (s.length > len) s = '\u0324' + s.substring(s.length-len+1, s.length);
+  if (s.length < len) s = Array(len+1-s.length).join(' ') + s;
+  return s;
+}
+
+
+
 function getScriptFolder(user) {
  return ( user === 'root' ? '/usr/sbin/' : `${os.homedir()}/bin/`);
 }
@@ -131,7 +152,9 @@ module.exports = {
   relativeTime,
   formatMem,
   formatL,
+  formatR,
   printLs,
+  printWarnings,
 
   getCurrentUser,
   getServiceList,
