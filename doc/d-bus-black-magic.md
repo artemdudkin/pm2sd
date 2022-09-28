@@ -1,4 +1,4 @@
-1. There are two options: (1) configure and start service as privileged user while service can be started as non-privilged user and (2) configure and start service as non-privileged user. This instructions is all about second option (as first option available by default)
+1. There are two use cases: (1) configure service as privileged user and run service as non-privilged user and (2) configure and run service as non-privileged user. This instructions is all about second option (as first option available by default)
 
 2. To configure service, login as selected user and do not use `su - <user>` (because it causes error `Failed to get D-Bus connection: Connection refused`)
 
