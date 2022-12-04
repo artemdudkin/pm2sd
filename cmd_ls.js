@@ -97,7 +97,7 @@ async function getServiceListInfo(res, prefix) {
                        ) //and all pids of childrens
             pids = [...new Set(pids)];
 
-            return runScript(`ps -p ${pids.join(',')} -o %cpu -o rss -o user -o pid`)
+            return runScript(`ps -p ${pids.join(',')} -o %cpu -o size -o user -o pid`)
             .then(res => {
               res.lines.join('').split('\n').slice(1).filter(l=>!l.startsWith('EXIT')).forEach( line => {
                 let pi = {};
