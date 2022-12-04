@@ -24,10 +24,11 @@ Lists all pm2sd services. Also, you can get list of all system services with opt
 ```bash
 $ pm2sd ls --all
 ```
-
 <img width=600px src="https://raw.githubusercontent.com/artemdudkin/pm2sd/main/doc/ls.png" alt="ls output">
 
-Also you can filter list of all services by part of its name with `pm2sd ls <name>`
+You can filter list of all services by part of its name with `pm2sd ls <name>`.
+
+Also you can use `--json` option to get json instead of colored text output.
 
 ### start
 
