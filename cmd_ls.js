@@ -159,7 +159,12 @@ async function ls(name, prefix, filterStr) {
     printLs(res)
   } catch (err) {
     loader.off();
-    console.log('ERROR', err)
+
+    if (err && err.lines && err.lines[0] && err.lines[0].indexOf('Failed to connect to bus: Permission denied')!==-1) {
+      console.log('\n' + clc.red('Failed to connect to bus, looks like systemd user service is not running') + '\n');
+    } else {
+      console.log('ERROR', err)
+    }
   }
 }
 
