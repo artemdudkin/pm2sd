@@ -39,15 +39,15 @@ if (args.err.length > 0) {
 if (args.cmd[0] === 'ls') {
   if (args.opt['all']) {
      if (args.cmd.length > 1) {
-       ls(args.cmd[1]);
+       ls(args.cmd[1], undefined, undefined, args.opt['json']);
      } else {
-       ls();
+       ls(undefined, undefined, undefined, args.opt['json']);
      }
   } else {
     if (args.cmd.length > 1) {
-      ls('pm2sd', 'pm2sd', args.cmd[1]);
+      ls('pm2sd', 'pm2sd', args.cmd[1], args.opt['json']);
     } else {
-      ls('pm2sd', 'pm2sd');
+      ls('pm2sd', 'pm2sd', undefined, args.opt['json']);
     }
   }
 
@@ -149,6 +149,7 @@ if (args.cmd[0] === 'ls') {
     Commands: ls|start|stop|restart|delete
 
     Options: --all
+             --json
              --name
              --user
              --time

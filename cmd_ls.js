@@ -79,11 +79,11 @@ async function getServiceListInfo(res, prefix) {
         return runScript(`systemctl ${currentUser==='root'?'':'--user'} status ${serviceName}`)
         .then(res => {
           let l = processLines(res.lines, prefix);
-          if (typeof l.Loaded !== 'undefined') result.push(l);
+          if (typeof l.Loaded !== 'undefined' && l.enabled!='static') result.push(l);
         })
         .catch(res => {
           let l = processLines(res.lines, prefix);
-          if (typeof l.Loaded !== 'undefined') result.push(l);
+          if (typeof l.Loaded !== 'undefined' && l.enabled!='static') result.push(l);
         });
       })
     })
@@ -149,14 +149,19 @@ async function getServiceListInfo(res, prefix) {
 }
 
 
-async function ls(name, prefix, filterStr) {
+async function ls(name, prefix, filterStr, isJson) {
   loader.on();
   try {
     let s = await getServiceList(name)
     if (filterStr) s = s.filter(i=>i.indexOf(filterStr)!==-1)
     let res = await getServiceListInfo(s, prefix)
     loader.off();
-    printLs(res)
+    if (isJson) {
+      for (let i=0; i<res.length; i++) {delete res[i].Loaded}
+      console.log(JSON.stringify(res, null, 4));
+    } else {
+      printLs(res)
+    }
   } catch (err) {
     loader.off();
 
