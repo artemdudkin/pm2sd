@@ -1,5 +1,5 @@
 # pm2sd
-PM2SD is a process manager for Node.js applications (or other scripts) built over `systemd`. It is inspired by PM2, but not that complex and uses far less memory (i.e. zero memory as it is wrapper for systemd service). I love PM2, but cannot use it on small VPS for pet projects, so meet the PM2SD!
+PM2SD is a process manager for Node.js applications (or other scripts) built over system services. It is inspired by PM2, but not that complex and uses far less memory (i.e. zero memory as it is wrapper for systemd service at Linux, for instance). I love PM2, but cannot use it on small VPS for pet projects, so meet the PM2SD!
 
 You can start process as simple as
 
@@ -7,15 +7,17 @@ You can start process as simple as
 $ pm2sd start index.js
 ```
 
-Process will be started as linux system service (i.e. added to /etc/systemd/system), enabled for restart after reboot, will restart in 30 seconds if it crashes, output and error logs goes to `/var/log/pm2sd-<name>` (if you want configure and start service under non-privileged user, you need to do some [black magic](./doc/d-bus-black-magic.md)). 
+Process will be started as system service (i.e. added to /etc/systemd/system at Linux), enabled for restart after reboot, will restart in 30 seconds if it crashes, output and error logs goes to `/var/log/pm2sd-<name>` (if you want configure and start service under non-privileged user, you need to do some [black magic](./doc/d-bus-black-magic.md)). 
 
 **No clusters, no load balancers, no watching, just one living process.**
 
-Implemented commands: ls, start, stop, restart, delete, log.
-
 Works on Linux (tested on Ubuntu, CentOS) and Windows in plans :construction: :hammer:.
 
-## ls
+## Commands
+
+Implemented commands: ls, start, stop, restart, delete, log.
+
+### ls
 
 Lists all pm2sd services. Also, you can get list of all system services with option `--all`:
 
@@ -27,27 +29,31 @@ $ pm2sd ls --all
 
 Also you can filter list of all services by part of its name with `pm2sd ls <name>`
 
-## start
+### start
 
 Starts new process. Avaliable options: name, description, time, user (i.e. service can be started from any user). 
 `--time` adds timestamp to logs.
 
 ```bash
-$ pm2sd start index.js --name=test --user=node
+$ pm2sd start index.js --name=test --user=node --time
 ```
 
-## stop
+### stop
 
 Stops process (by its name).
 
-## restart
+### restart
 
 Restarts process (by its name).
 
-## delete
+### delete
 
 Delete all traces of process (include logs).
 
-## log
+### log
 
 Tails log of selected process (`pm2sd log <name>`) or logs for all processes if nothing specified (`pm2sd log`).
+
+## Troubleshooting
+
+If you've got `Failed to connect to bus: Permission denied` or `Failed to connect to bus, looks like systemd user service is not running` that means you're trying to work under non-root user, which requires the systemd user service to be started (look at [this](./doc/d-bus-black-magic.md)) 
