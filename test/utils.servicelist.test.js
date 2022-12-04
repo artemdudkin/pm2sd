@@ -1,11 +1,18 @@
 const proxyquire = require("proxyquire");
 const { expect } = require("chai");
 
-const ret_1 = `UNIT FILE                              STATE           VENDOR PRESET
-accounts-daemon.service                enabled         enabled      
-apparmor.service                       enabled         enabled      
-apt-daily-upgrade.service              static          enabled      
-EXIT 0`;
+const ret_1 = `UNIT                                   LOAD      ACTIVE     SUB          DESCRIPTION                                                       
+  cpupower.service                       loaded    inactive   dead         Configure CPU power related settings                              
+  crond.service                          loaded    active     running      Command Scheduler                                                 
+● display-manager.service                not-found inactive   dead         display-manager.service                                           
+
+LOAD   = Reflects whether the unit definition was properly loaded.
+ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
+SUB    = The low-level unit activation state, values depend on unit type.
+
+126 loaded units listed.
+To show all installed unit files use 'systemctl list-unit-files'.`
+
 
 
 describe("#utils.servicelist", function () {
@@ -34,8 +41,8 @@ describe("#utils.servicelist", function () {
 
     return getServiceList()
     .then(res => {
-      expect(commands).to.deep.equal(['whoami', 'systemctl  list-unit-files --type=service'])
-      expect(res).to.deep.equal(['accounts-daemon.service', 'apparmor.service'])
+      expect(commands).to.deep.equal(['whoami', 'systemctl  list-units --type=service --all'])
+      expect(res).to.deep.equal(['cpupower.service', 'crond.service'])
     })
   });
 
@@ -45,9 +52,9 @@ describe("#utils.servicelist", function () {
       "./rs": {runScript : (cmd) => Promise.resolve( {lines: [(cmd==='whoami'?'root':ret_1)]})},
     });
 
-    return getServiceList('account')
+    return getServiceList('cpu')
     .then(res => {
-      expect(res).to.deep.equal(['accounts-daemon.service'])
+      expect(res).to.deep.equal(['cpupower.service'])
     })
   });
 
@@ -64,7 +71,7 @@ describe("#utils.servicelist", function () {
 
     return getServiceList()
     .then(res => {
-      expect(commands).to.deep.equal(['whoami', 'systemctl --user list-unit-files --type=service'])
+      expect(commands).to.deep.equal(['whoami', 'systemctl --user list-units --type=service --all'])
     })
   });
 

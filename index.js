@@ -142,6 +142,8 @@ if (args.cmd[0] === 'ls') {
     console.error('ERROR: there is no filename after "start"');
   }
 
+} else if (args.opt['version']){
+  console.log( require('./package.json').version);
 } else {
   console.log(`
     Usage: pm2sd <command> [name/filename] [options]
@@ -154,6 +156,7 @@ if (args.cmd[0] === 'ls') {
              --user
              --time
              --description
+             --version
 `);
 }
 
