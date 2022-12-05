@@ -70,6 +70,23 @@ function printWarnings(warnings) {
 
 
 /**
+ * Prints error from rs.run
+ * @param err {String|Object} error
+ */
+function printError(err) {
+    if (err && err.lines && err.lines[0] && 
+        (   err.lines[0].indexOf('Failed to connect to bus: Permission denied')!==-1 // centos
+         || err.lines[0].indexOf('Failed to get D-Bus connection: Permission denied')!==-1 //ubuntu
+        )
+    ) {
+      console.log('\n' + clc.red('Failed to connect to D-Bus, looks like systemd user service is not running') + '\n');
+    } else {
+      console.log('ERROR', err)
+    }
+}
+
+
+/**
  * @param {Object} result [{name, active, enabled, uptime, pid, memory, user, cpu}, ...]
  */
 function printLs(result) {
@@ -155,6 +172,7 @@ module.exports = {
   formatR,
   printLs,
   printWarnings,
+  printError,
 
   getCurrentUser,
   getServiceList,

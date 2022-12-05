@@ -1,6 +1,6 @@
 var clc = require("cli-color");
 const { runScript } = require('./rs');
-const { loader, formatMem, formatL, printLs, getCurrentUser, getServiceList } = require('./utils');
+const { loader, formatMem, formatL, printLs, printError, getCurrentUser, getServiceList } = require('./utils');
 
 
 function processLines(lines, prefix) {
@@ -97,7 +97,7 @@ async function getServiceListInfo(res, prefix) {
                        ) //and all pids of childrens
             pids = [...new Set(pids)];
 
-            return runScript(`ps -p ${pids.join(',')} -o %cpu -o size -o user -o pid`)
+            return runScript(`ps -p ${pids.join(',')} -o %cpu -o rss -o user -o pid`)
             .then(res => {
               res.lines.join('').split('\n').slice(1).filter(l=>!l.startsWith('EXIT')).forEach( line => {
                 let pi = {};
@@ -164,12 +164,7 @@ async function ls(name, prefix, filterStr, isJson) {
     }
   } catch (err) {
     loader.off();
-
-    if (err && err.lines && err.lines[0] && err.lines[0].indexOf('Failed to connect to bus: Permission denied')!==-1) {
-      console.log('\n' + clc.red('Failed to connect to bus, looks like systemd user service is not running') + '\n');
-    } else {
-      console.log('ERROR', err)
-    }
+    printError(err);
   }
 }
 

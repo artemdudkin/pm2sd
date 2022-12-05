@@ -4,7 +4,7 @@ const start = require('./cmd_start');
 const create = require('./cmd_create');
 const op_delete = require('./cmd_delete');
 const op_log = require('./cmd_log');
-const { getServiceList, getCurrentUser } = require('./utils');
+const { printError, getServiceList, getCurrentUser } = require('./utils');
 
 /**
  * Reads arguments,
@@ -138,6 +138,7 @@ if (args.cmd[0] === 'ls') {
 //          }
         }
       })
+      .catch(err => printError(err))
   } else {
     console.error('ERROR: there is no filename after "start"');
   }
