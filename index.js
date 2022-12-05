@@ -63,7 +63,7 @@ if (args.cmd[0] === 'ls') {
 } else if (args.cmd[0] === 'stop') {
   if (args.cmd[1]) {
     stop('pm2sd-' + args.cmd[1])
-      .catch(err => console.error('ERROR', err))
+      .catch(err => printError(err))
       .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "stop"');
@@ -86,7 +86,7 @@ if (args.cmd[0] === 'ls') {
 } else if (args.cmd[0] === 'delete') {
   if (args.cmd[1]) {
     op_delete('pm2sd-' + args.cmd[1])
-     .catch(err => console.error('ERROR', err))
+     .catch(err => printError(err))
      .finally(() => ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "delete"');

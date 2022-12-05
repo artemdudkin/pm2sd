@@ -9,9 +9,6 @@ async function stop(serviceName, isSilent) {
   let currentUser = await getCurrentUser();
 
   return runScript(`systemctl ${currentUser==='root'?'':'--user'} stop ${serviceName}`)
-    .catch( res => {
-      if (!isSilent) console.log('\n' + clc.red( res.lines.join('').split('\n')[0]) + '\n');
-    })
 }
 
 module.exports = stop;

@@ -12,9 +12,7 @@ async function start(serviceName) {
   let logFolder = getLogFolder(currentUser);
   let serviceFolder = getServiceFolder(currentUser);
 
-  try {
-    await stop(serviceName, true);
-  } catch (e) {}
+  await stop(serviceName, true);
 
   await runScript(`rm -rf ${scriptFolder}${serviceName}.sh`);
 
