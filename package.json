@@ -1,7 +1,7 @@
 {
   "name": "pm2sd",
   "description": "Node.js Process Manager over systemd service",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "private": false,
   "main": "index.js",
   "bin": {
