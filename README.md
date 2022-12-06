@@ -57,4 +57,4 @@ Tails log of selected process (`pm2sd log <name>`) or logs for all processes if 
 
 ## Troubleshooting
 
-If you've got `Failed to connect to bus: Permission denied` or `Failed to connect to bus, looks like systemd user service is not running` that means you're trying to work under non-root user, which requires the systemd user service to be started (look at [this](./doc/d-bus-black-magic.md)) 
+If you've got `Failed to connect to D-Bus` that means you're trying to work under non-root user, which requires the systemd user service to be started (look at [this](./doc/d-bus-black-magic.md)) 
