@@ -8,7 +8,7 @@
 
 5. Add user to group systemd-journal by `usermod -a -G systemd-journal <user>`
 
-6. If you have RHEL or CentOS then enable systemd user service for selected user (as Red Hat disabled the systemd user service by default) - please follow [this instruction from SO](https://serverfault.com/a/1026914):
+6. If you have RHEL or CentOS then you should enable systemd user service for selected user (as Red Hat disabled the systemd user service by default) - please follow [this instruction from SO](https://serverfault.com/a/1026914):
 
 > I've noticed the tableau server uses --user systemd services - they even have a note about this in their docs: https://help.tableau.com/current/server-linux/en-us/systemd_user_service_error.htm
 >
