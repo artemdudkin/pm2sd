@@ -47,7 +47,7 @@ function processLines(lines, prefix) {
         r.name = rname;
         r.description = rdescription;
         r.active = (ret.Active || '').split(' ')[0];
-        r.enabled = ((ret.Loaded || '').split(';')[1] || '').trim();
+        r.enabled = ((ret.Loaded || '').split(';')[1] || '').replace(/\)$/g, '').trim();
         r.uptime = ((ret.Active || '').split(';')[1] || '').replace('ago', '').trim();
         r.pid = (ret['Main PID'] || '').split(' ')[0];
         r.children = ret.children;
