@@ -11,7 +11,7 @@ Process will be started as system service (i.e. added to /etc/systemd/system at 
 
 **No clusters, no load balancers, no watching, just one living process.**
 
-Works on Linux (tested on Ubuntu, CentOS) and Windows in plans :construction: :hammer:.
+Works on Linux and Windows is in plans :construction: :hammer:.
 
 ## Commands
 
