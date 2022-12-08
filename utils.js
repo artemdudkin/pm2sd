@@ -75,11 +75,11 @@ function printWarnings(warnings) {
  */
 function printError(err) {
     if (err && err.lines && err.lines[0] && 
-        (   err.lines[0].indexOf('Failed to connect to bus: Permission denied')!==-1 // centos
-         || err.lines[0].indexOf('Failed to get D-Bus connection: Permission denied')!==-1 //ubuntu
+        (   err.lines[0].indexOf('Failed to connect to bus')!==-1 // centos
+         || err.lines[0].indexOf('Failed to get D-Bus connection')!==-1 //ubuntu
         )
     ) {
-      console.log('\n' + clc.red('Failed to connect to D-Bus, looks like systemd user service is not running') + '\n');
+      console.log('\n' + clc.red('Failed to connect to D-Bus (systemd user service is not running or "su <user>" was used to change user instead of login).') + '\n');
     } else {
       console.log('ERROR', err)
     }
