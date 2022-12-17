@@ -3,7 +3,7 @@ const { expect } = require("chai");
 
 const ret_abc = `● pm2sd-a.service - PM2SD pm2sd-a
    Loaded: loaded (/etc/systemd/system/pm2sd-a.service; enabled; vendor preset: disabled)
-   Active: active (running) since Sat 2022-09-24 17:34:50 MSK; 2s ago
+   Active: active (exited) since Sat 2022-09-24 17:34:50 MSK; 2s ago
   Process: 1141 ExecStart=/bin/bash /usr/sbin/pm2sd-a.service.sh (code=exited, status=0/SUCCESS)
  Main PID: 25107 (code=killed, signal=TERM)
    CGroup: /system.slice/pm2sd-a.service
@@ -31,7 +31,7 @@ const ret_xyz = '* xyz-vpn.service - XYZ VPN\n'+
 'Sep 24 12:55:56 vds2318343 systemd[1]: Started NLMK VPN.\n'+
 'EXIT 0\n';
 
-const ret_aaa = `● auditd.service - Security Auditing Service
+const ret_auditd = `● auditd.service - Security Auditing Service
    Loaded: loaded (/usr/lib/systemd/system/auditd.service; enabled; vendor preset: enabled)
    Active: active (running) since Sun 2022-09-11 01:37:00 MSK; 1 weeks 6 days ago
      Docs: man:auditd(8)
@@ -43,6 +43,19 @@ const ret_aaa = `● auditd.service - Security Auditing Service
 
 Sep 22 18:15:36 vds2326517.my-ihor.ru auditd[422]: Audit daemon rotating log files
 Warning: Journal has been rotated since unit was started. Log output is incomplete or unavailable.
+EXIT 0`;
+
+const ret_dead = `● e2scrub_reap.service - Remove Stale Online ext4 Metadata Check Snapshots
+     Loaded: loaded (/lib/systemd/system/e2scrub_reap.service; enabled; vendor preset: enabled)
+     Active: inactive (dead) since Sat 2022-12-17 20:43:37 UTC; 17min ago
+       Docs: man:e2scrub_all(8)
+    Process: 549 ExecStart=/sbin/e2scrub_all -A -r (code=exited, status=0/SUCCESS)
+   Main PID: 549 (code=exited, status=0/SUCCESS)
+        CPU: 12ms
+
+Dec 17 20:43:35 debian-s-1vcpu-1gb-ams3-01 systemd[1]: Starting Remove Stale Online ext4 Metadata Check Snapshots...
+Dec 17 20:43:37 debian-s-1vcpu-1gb-ams3-01 systemd[1]: e2scrub_reap.service: Succeeded.
+Dec 17 20:43:37 debian-s-1vcpu-1gb-ams3-01 systemd[1]: Finished Remove Stale Online ext4 Metadata Check Snapshots.
 EXIT 0`;
 
 const ret_ps = `%CPU   RSS USER         PID
@@ -66,8 +79,10 @@ describe("#cmd_ls", function () {
             return Promise.resolve( {lines: [ret_abc]})
           } else if (cmd.endsWith('xyz')) {
             return Promise.resolve( {lines: [ret_xyz]})
-          } else if (cmd.endsWith('aaa')) {
-            return Promise.resolve( {lines: [ret_aaa]})
+          } else if (cmd.endsWith('auditd')) {
+            return Promise.resolve( {lines: [ret_auditd]})
+          } else if (cmd.endsWith('e2scrub_reap')) {
+            return Promise.resolve( {lines: [ret_dead]})
           } else {
             return Promise.resolve( {lines: [ret_ps]})
           }
@@ -77,7 +92,7 @@ describe("#cmd_ls", function () {
          loader: {on:()=>{}, off:()=>{}},
          printLs: (res) => {printLsResult=res},
          getCurrentUser: () => 'root',
-         getServiceList: () => ['abc', 'xyz', 'aaa'],
+         getServiceList: () => ['abc', 'xyz', 'auditd', 'e2scrub_reap'],
        }
     });
 
@@ -86,12 +101,13 @@ describe("#cmd_ls", function () {
       expect(commands).to.deep.equal([
         'systemctl  status abc',
         'systemctl  status xyz', 
-        'systemctl  status aaa', 
-        'ps -p 25107,422,1142,1143,1144,1145,77636 -o %cpu -o rss -o user -o pid'
+        'systemctl  status auditd', 
+        'systemctl  status e2scrub_reap', 
+        'ps -p 25107,422,549,1142,1143,1144,1145,77636 -o %cpu -o rss -o user -o pid'
       ])
       expect(printLsResult).to.deep.equal([{
           "Loaded": "loaded (/etc/systemd/system/pm2sd-a.service; enabled; vendor preset: disabled)",
-          "active": "active",
+          "active": "active (exited)",
           "children": ["1142","1143","1144","1145"],
           "cpu": 0.6000000000000001,
           "description": "PM2SD pm2sd-a",
@@ -127,7 +143,21 @@ describe("#cmd_ls", function () {
           "pid": "422",
           "uptime": "1 weeks 6 days",
           "user": "",
-        }])
+        },
+        {
+          "Loaded": "loaded (/lib/systemd/system/e2scrub_reap.service; enabled; vendor preset: enabled)",
+          "active": "inactive",
+          "children": [],
+          "cpu": 0,
+          "description": "Remove Stale Online ext4 Metadata Check Snapshots",
+          "enabled": "enabled",
+          "memory": "",
+          "name": "e2scrub_reap",
+          "pid": "549",
+          "uptime": "17min",
+          "user": ""
+        }
+      ])
     })
   });
 });

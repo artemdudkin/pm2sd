@@ -8,7 +8,7 @@ function processLines(lines, prefix) {
 
         // split lines to get key-value according with template "key:value"
         // (and try to read list of children pids under CGroup line before empty line)
-        let ret = {}
+        let ret = {children:[]}
         let empty_line_passed = false;
         let cgroup_line_passed = false;
         for (let i=0; i<lines.length; i++){
@@ -47,6 +47,8 @@ function processLines(lines, prefix) {
         r.name = rname;
         r.description = rdescription;
         r.active = (ret.Active || '').split(' ')[0];
+        // if it is "active (running)" then set "active", otherwise get all before 'since', for instance "active (exited)"
+        if (r.active === 'active' && (ret.Active || '').split(' ')[1] !== '(running)') r.active = (ret.Active || '').split(' since')[0];
         r.enabled = ((ret.Loaded || '').split(';')[1] || '').replace(/\)$/g, '').trim();
         r.uptime = ((ret.Active || '').split(';')[1] || '').replace('ago', '').trim();
         r.pid = (ret['Main PID'] || '').split(' ')[0];
