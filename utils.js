@@ -90,10 +90,10 @@ function printError(err) {
  * @param {Object} result [{name, active, enabled, uptime, pid, memory, user, cpu}, ...]
  */
 function printLs(result) {
-  let header = clc.blackBright(`┌──────────────────────┬──────────┬────────┬────────────┬───────────┬──────────┬──────────┬──────────┐\n`)+
-               clc.blackBright(`│ `+clc.cyanBright(`name`)+`                 │ `+clc.cyanBright(`pid`)+`      │ `+clc.cyanBright(`uptime`)+` │ `+clc.cyanBright(`status`)+`     │ `+clc.cyanBright(`startup`)+`   │ `+clc.cyanBright(`%cpu`)+`     │ `+clc.cyanBright(`mem`)+`      │ `+clc.cyanBright(`user`)+`     │\n`)
-  let header2= clc.blackBright(`├──────────────────────┼──────────┼────────┼────────────┼───────────┼──────────┼──────────┼──────────┤`);
-  let footer = clc.blackBright(`└──────────────────────┴──────────┴────────┴────────────┴───────────┴──────────┴──────────┴──────────┘`);
+  let header = clc.blackBright(`┌──────────────────────┬──────────┬────────┬─────────────┬─────────────┬──────────┬──────────┬──────────┐\n`)+
+               clc.blackBright(`│ `+clc.cyanBright(`name`)+`                 │ `+clc.cyanBright(`pid`)+`      │ `+clc.cyanBright(`uptime`)+` │ `+clc.cyanBright(`status`)+`      │ `+clc.cyanBright(`startup`)+`     │ `+clc.cyanBright(`%cpu`)+`     │ `+clc.cyanBright(`mem`)+`      │ `+clc.cyanBright(`user`)+`     │\n`)
+  let header2= clc.blackBright(`├──────────────────────┼──────────┼────────┼─────────────┼─────────────┼──────────┼──────────┼──────────┤`);
+  let footer = clc.blackBright(`└──────────────────────┴──────────┴────────┴─────────────┴─────────────┴──────────┴──────────┴──────────┘`);
 
   console.log(header + (result.length>0 ? header2 : '') + (result.length==0 ? footer : ''));
 
@@ -102,14 +102,14 @@ function printLs(result) {
     name = formatL( name, 20);
     pid  = formatL( pid, 8); 
     uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W').replace(' week', 'W'), 6);
-    let status = (active==='active' || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 10));
-    enabled = enabled==='enabled' || enabled==='Auto' ? clc.green(formatL(enabled, 9)) : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 9));
+    let status = (active.startsWith('active') || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 11));
+    enabled = enabled==='enabled' || enabled==='Auto' ? clc.green(formatL(enabled, 11)) : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 11));
     let mem = formatL( memory.replace('M', 'mb'), 8);
     user = formatR(user, 8);
     cpu = formatL(memory && cpu ? Math.round(cpu*10)/10 : '', 8);
 
-    if (active!=='active' && active!=='RUNNING') pid = clc.red(pid);
-    if (active!=='active' && active!=='RUNNING' ) uptime = clc.red(uptime);
+    if ( !active.startsWith('active') && active!=='RUNNING') pid = clc.red(pid);
+    if ( !active.startsWith('active') && active!=='RUNNING' ) uptime = clc.red(uptime);
 
     let bb = clc.blackBright('│');
     console.log(`${bb} ${name} ${bb} ${pid} ${bb} ${uptime} ${bb} ${status} ${bb} ${enabled} ${bb} ${cpu} ${bb} ${mem} ${bb} ${user} ${bb}`);
