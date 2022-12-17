@@ -101,7 +101,7 @@ function printLs(result) {
     let { name='', pid='', uptime='', active='', enabled='', memory='', user='', cpu='' } = line;
     name = formatL( name, 20);
     pid  = formatL( pid, 8); 
-    uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W').replace(' week', 'W'), 6);
+    uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W').replace(' week', 'W').replace(' months', 'M').replace(' month', 'M').replace(' years', 'Y').replace(' year', 'Y'), 6);
     let status = (active.startsWith('active') || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 11));
     enabled = enabled==='enabled' || enabled==='Auto' ? clc.green(formatL(enabled, 11)) : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 11));
     let mem = formatL( memory.replace('M', 'mb'), 8);
