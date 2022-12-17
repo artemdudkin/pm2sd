@@ -29,10 +29,10 @@ async function tail(cmd, description, name, colorFunc) {
  * Get list of pid of all systemd processes
  */
 async function systemdIds() {
-  let res = await runScript(`ps aux | grep systemd`);
+  let res = await runScript(`ps aux | grep "systemd "`);
   res = res.lines.join('').split('\n')
   res = res
-  .filter(i=>i.indexOf('systemd-journald')===-1 && i.indexOf('systemd-udevd')===-1 && i.indexOf('systemd-logind')===-1 && i.indexOf('dbus-daemon')===-1 && i.indexOf('grep')===-1&& i.indexOf('EXIT')===-1&& i.indexOf('systemd-timesyncd')===-1&& i.indexOf('systemd-resolved')===-1)
+  .filter(i=>i.indexOf('systemd-journald')===-1 && i.indexOf('systemd-udevd')===-1 && i.indexOf('systemd-logind')===-1 && i.indexOf('dbus-daemon')===-1 && i.indexOf('grep')===-1&& i.indexOf('EXIT')===-1&& i.indexOf('systemd-timesyncd')===-1&& i.indexOf('systemd-resolved')===-1&& i.indexOf('systemd-oomd')===-1&& i.indexOf('systemd-userdbd')===-1)
   .map(i=>{
     let p=i.indexOf(' ');
     return i.substring(p+1, i.length).trim().split(' ')[0];
