@@ -21,7 +21,7 @@ function processLines(lines, prefix) {
             if (cgroup_line_passed && !empty_line_passed) {
               let pdigit = -1;
               const matches = [...line.matchAll(/[0-9]/g)];
-              if (matches.length) pdigit = matches.at(0).index;
+              if (matches.length) pdigit = matches[0].index;
               if (pdigit !== -1) {
                 let pspace = line.indexOf(' ', pdigit);
                 if (pspace !== -1) {
