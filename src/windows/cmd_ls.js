@@ -1,60 +1,7 @@
-var clc = require("cli-color");
-const { runScript } = require('./rs');
-const { loader, printLs, printWarnings, formatMem, relativeTime } = require('./utils');
-
-
-/**
- * Returns service list [{name, description, type, state, active, pid}, ... ]
- */
-async function getServiceList(aName) {
-//  let res = await runScript(`cmd /c chcp 65001>nul && sc queryex type=service state=all`)
-  let res = await runScript(`sc queryex type=service state=all`)
-
-  let lines = res.lines.join('').split('\n').filter(i=>i.indexOf('EXIT')===-1);
-  let ret = [];
-
-  let i=0;
-  while (++i < lines.length) {
-    let line = lines[i].replace(/\r/g, '');
-
-    let sname = (line.split(':')[1] || '').trim();
-    let r = {name : sname}
-
-    let lineDISPLAY_NAME = lines[++i].replace(/\r/g, '').trim();
-    let lineTYPE = lines[++i].replace(/\r/g, '').trim();
-    let lineSTATE = lines[++i].replace(/\r/g, '').trim();
-
-    r.description = (lineDISPLAY_NAME.split(':')[1] || '').trim()
-    r.type = (lineTYPE.split(':')[1] || '').trim()
-    r.type = r.type.substring( r.type.indexOf(' ')+1, r.type.length).trim()
-    r.state = (lineSTATE.split(':')[1] || '').trim()
-    r.state = r.state.substring( r.state.indexOf(' ')+1, r.state.length).trim()
-    r.active = r.state
-
-    while (++i < lines.length && lines[i].replace(/\r/g, '').length !== 0) {
-      let line = lines[i].replace(/\r/g, '');
-      let {0:name, 1:value} = line.split(':');
-      name = name.trim();
-      value = (value || '').trim();
-      if (name === 'PID' || name.startsWith('ID_')) r.pid=value
-      if (r.pid === '0') r.pid = '';
-    }
-
-    if (!r.type.startsWith('WIN32_SHARE_PROCESS') && !r.type.startsWith('USER_SHARE_PROCESS')) {
-//console.log(r.name, aName, r.name.indexOf(aName));
-      let n = (aName || '').toLowerCase();
-      if (!aName || r.name.toLowerCase().indexOf(n) !== -1) ret.push(r);
-    }
-  }
-
-  return ret.sort((a, b) => {
-    const nameA = a.name.toUpperCase();
-    const nameB = b.name.toUpperCase();
-    if (nameA < nameB) return -1;
-    if (nameA > nameB) return 1;
-    return 0;
-  });
-}
+const clc = require("cli-color");
+const { runScript } = require('../rs');
+const { loader, printLs, printWarnings, printError, formatMem, relativeTime } = require('../utils');
+const { getServiceListExt } = require('./utils.os');
 
 
 /**
@@ -208,21 +155,25 @@ async function getServiceListInfo(res, prefix) {
 }
 
 
-async function ls(name, prefix) {
+async function ls(name, prefix, filterStr, isJson) {
   loader.on();
   try {
-//let stime = Date.now();
-    let s = await getServiceList(name)
-//console.log('getServiceList', Date.now()-stime, 'ms');
+    let s = await getServiceListExt(name)
+    if (filterStr) s = s.filter(i=>i.name.indexOf(filterStr)!==-1)
     let res = await getServiceListInfo(s, prefix)
     loader.off();
     printWarnings(res.warnings)
-    printLs(res.data)
+    if (isJson) {
+      console.log(JSON.stringify(res.data, null, 4));
+    } else {
+      printLs(res.data)
+    }
   } catch (err) {
     loader.off();
-    console.log('ERROR', err)
+    printError(err);
   }
 }
+
 
 
 module.exports = ls;

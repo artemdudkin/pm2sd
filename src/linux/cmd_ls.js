@@ -1,6 +1,7 @@
 var clc = require("cli-color");
-const { runScript } = require('./rs');
-const { loader, formatMem, formatL, printLs, printError, getCurrentUser, getServiceList } = require('./utils');
+const { runScript } = require('../rs');
+const { loader, getCurrentUser, formatMem, formatL, printLs, printError } = require('../utils');
+const { getServiceList } = require('./utils.os');
 
 
 function processLines(lines, prefix) {

@@ -1,10 +1,12 @@
-const ls = process.platform === 'win32' ? require('./cmd_ls.win') : require('./cmd_ls');
-const stop = require('./cmd_stop');
-const start = require('./cmd_start');
-const create = require('./cmd_create');
-const op_delete = require('./cmd_delete');
-const op_log = require('./cmd_log');
-const { printError, getServiceList, getCurrentUser } = require('./utils');
+const folder = process.platform === 'win32' ? 'src/windows' : 'src/linux';
+const ls = require(`./${folder}/cmd_ls`);
+const stop = require(`./${folder}/cmd_stop`);
+const start = require(`./${folder}/cmd_start`);
+const create = require(`./${folder}/cmd_create`);
+const op_delete = require(`./${folder}/cmd_delete`);
+const op_log = require(`./${folder}/cmd_log`);
+const { getServiceList } = require(`./${folder}/utils.os`);
+const { printError } = require('./src/utils');
 
 /**
  * Reads arguments,
@@ -109,16 +111,12 @@ if (args.cmd[0] === 'ls') {
       getServiceList()
       .then( res => {
         let possibleName = 'pm2sd-' + args.cmd[1];
-        if (res.indexOf(`${possibleName}.service`) !== -1) {
+        if (res.indexOf(possibleName) !== -1) {
           // start existing service
           return start(possibleName)
-           .catch(err => console.error('ERROR', err))
+           .catch(err => printError(err))
            .finally(() => ls('pm2sd', 'pm2sd'));
         } else {
-          // or create new service
-//          if (args.cmd[1].endsWith('.js') || args.cmd[1].endsWith('.sh')) {
-            // node.js app or bash script
-
             if (!args.opt.name) {
               possibleName = 'pm2sd-' + args.cmd[1].replace(/\.js$/, '').replace(/\.sh$/, '');
               if (res.indexOf(possibleName) === -1) {
@@ -130,12 +128,8 @@ if (args.cmd[0] === 'ls') {
             args.opt.name = (args.opt.name.startsWith('pm2sd-')?'':'pm2sd-') + args.opt.name;
 
             return create(args.cmd[1], args.opt)
-             .catch(err => console.error('ERROR', err))
+             .catch(err => printError(err))
              .finally(() => ls('pm2sd', 'pm2sd'));
-//          } else {
-            // whatever it was
-//            console.error('Cannot determine script type (only .js and .sh implemented).')
-//          }
         }
       })
       .catch(err => printError(err))

@@ -1,7 +1,9 @@
 const fs = require("fs");
 const clc = require("cli-color");
-const { runScript } = require('./rs');
-const { formatL, getCurrentUser, getServiceList, getLogFolder } = require('./utils');
+const { runScript } = require('../rs');
+const { formatL } = require('../utils');
+const { getCurrentUser } = require('../utils');
+const { getServiceList, getLogFolder } = require('./utils.os');
 
 /**
  * Pipes output of 'cmd' bash script to console with 'name' prefix and colored by 'colorFunc' of cli-color

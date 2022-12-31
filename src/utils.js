@@ -1,6 +1,5 @@
 const os = require('os');
 var clc = require("cli-color");
-const { getServiceList, getCurrentUser } = require('./utils.servicelist');
 
 
 const loader = {
@@ -26,6 +25,15 @@ const loader = {
   }
 }
 
+
+let currentUser;
+async function getCurrentUser() {
+  if (!currentUser) { // memoization of current user
+    currentUser = os.userInfo().username;
+  } else {
+  }
+  return currentUser;
+}
 
 
 function relativeTime(timestamp) {
@@ -61,11 +69,8 @@ function relativeTime(timestamp) {
  * @param {Array} warnings (array of String)
  */
 function printWarnings(warnings) {
-  if (warnings.length > 0) {
-//    console.log('  '); // to overwrite frames of loader
+  if (warnings.length > 0)
     warnings.forEach( warning => console.warn(clc.blackBright('** '+warning + ' **')))
-//    console.log();
-  }
 }
 
 
@@ -81,7 +86,7 @@ function printError(err) {
     ) {
       console.log('\n' + clc.red('Failed to connect to D-Bus (systemd user service is not running or "su <user>" was used to change user instead of login).') + '\n');
     } else {
-      console.log('ERROR', err)
+      console.error('ERROR', err)
     }
 }
 
@@ -150,22 +155,10 @@ function formatR( s, len) {
 
 
 
-function getScriptFolder(user) {
- return ( user === 'root' ? '/usr/sbin/' : `${os.homedir()}/bin/`);
-}
-
-function getLogFolder(user) {
-  return (user === 'root' ? '/var/log/' : `${os.homedir()}/log/`);
-}
-
-function getServiceFolder(user) {
-  return (user === 'root' ? '/etc/systemd/system/' : `${os.homedir()}/.config/systemd/user/`);
-}
-
-
 
 module.exports = {
   loader,
+  getCurrentUser,
   relativeTime,
   formatMem,
   formatL,
@@ -173,11 +166,4 @@ module.exports = {
   printLs,
   printWarnings,
   printError,
-
-  getCurrentUser,
-  getServiceList,
-
-  getScriptFolder,
-  getLogFolder,
-  getServiceFolder
 };

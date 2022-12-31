@@ -17,52 +17,44 @@ To show all installed unit files use 'systemctl list-unit-files'.`
 
 describe("#utils.servicelist", function () {
 
-  it("[linux] getCurrentUser", function () {
-    const { getCurrentUser } = proxyquire("../utils.servicelist", {
-      "./rs": {runScript : (cmd) => Promise.resolve( {lines: ['xyz\nEXIT 0']})},
-    });
-
-    return getCurrentUser()
-    .then(res => {
-      expect(res).to.equal('xyz')
-    })
-  });
-
-
   it("[linux] getServiceList", function () {
     let commands = []
-    const { getServiceList } = proxyquire("../utils.servicelist", {
-      "./rs": {runScript : (cmd) => {
+    const { getServiceList } = proxyquire("../src/linux/utils.os", {
+      "../rs": {
+        runScript : (cmd) => {
           commands.push(cmd);
           return Promise.resolve( {lines: [(cmd==='whoami'?'root':ret_1)]})
         }
+      },
+      "../utils": {
+        getCurrentUser: () => {return "root"}
       },
     });
 
     return getServiceList()
     .then(res => {
-      expect(commands).to.deep.equal(['whoami', 'systemctl  list-units --type=service --all'])
-      expect(res).to.deep.equal(['cpupower.service', 'crond.service'])
+      expect(commands).to.deep.equal(['systemctl  list-units --type=service --all'])
+      expect(res).to.deep.equal(['cpupower', 'crond'])
     })
   });
 
 
   it("[linux] getServiceList with filter", function () {
-    const { getServiceList } = proxyquire("../utils.servicelist", {
-      "./rs": {runScript : (cmd) => Promise.resolve( {lines: [(cmd==='whoami'?'root':ret_1)]})},
+    const { getServiceList } = proxyquire("../src/linux/utils.os", {
+      "../rs": {runScript : (cmd) => Promise.resolve( {lines: [(cmd==='whoami'?'root':ret_1)]})},
     });
 
     return getServiceList('cpu')
     .then(res => {
-      expect(res).to.deep.equal(['cpupower.service'])
+      expect(res).to.deep.equal(['cpupower'])
     })
   });
 
 
   it("[linux] getServiceList (non-root)", function () {
     let commands = []
-    const { getServiceList } = proxyquire("../utils.servicelist", {
-      "./rs": {runScript : (cmd) => {
+    const { getServiceList } = proxyquire("../src/linux/utils.os", {
+      "../rs": {runScript : (cmd) => {
           commands.push(cmd);
           return Promise.resolve( {lines: [(cmd==='whoami'?'xyz':ret_1)]})
         }
@@ -71,7 +63,7 @@ describe("#utils.servicelist", function () {
 
     return getServiceList()
     .then(res => {
-      expect(commands).to.deep.equal(['whoami', 'systemctl --user list-units --type=service --all'])
+      expect(commands).to.deep.equal(['systemctl --user list-units --type=service --all'])
     })
   });
 

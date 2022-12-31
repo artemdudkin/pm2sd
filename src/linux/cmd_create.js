@@ -2,8 +2,9 @@ const os = require('os');
 const fs = require('fs');
 const { resolve } = require('path');
 var clc = require("cli-color");
-const { runScript } = require('./rs');
-const { getCurrentUser, getServiceList, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils');
+const { runScript } = require('../rs');
+const { getCurrentUser } = require('../utils');
+const { getServiceList, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils.os');
 
 /**
  * @param {String} fn

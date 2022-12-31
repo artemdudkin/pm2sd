@@ -1,6 +1,6 @@
 var clc = require("cli-color");
-const { runScript } = require('./rs');
-const { getCurrentUser } = require('./utils');
+const { runScript } = require('../rs');
+const { getCurrentUser } = require('../utils');
 
 
 async function stop(serviceName, isSilent) {

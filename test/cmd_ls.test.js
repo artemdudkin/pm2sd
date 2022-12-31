@@ -71,8 +71,8 @@ describe("#cmd_ls", function () {
   it("[linux] ls", function () {
     let commands = []
     let printLsResult;
-    const ls = proxyquire("../cmd_ls", {
-      './rs': {
+    const ls = proxyquire("../src/linux/cmd_ls", {
+      '../rs': {
         runScript : (cmd) => {
           commands.push(cmd);
           if (cmd.endsWith('abc')) {
@@ -88,10 +88,12 @@ describe("#cmd_ls", function () {
           }
         }
       },
-      './utils': {
+      '../utils': {
          loader: {on:()=>{}, off:()=>{}},
          printLs: (res) => {printLsResult=res},
          getCurrentUser: () => 'root',
+       },
+      './utils.os': {
          getServiceList: () => ['abc', 'xyz', 'auditd', 'e2scrub_reap'],
        }
     });
