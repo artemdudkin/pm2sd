@@ -1,10 +1,10 @@
 const folder = process.platform === 'win32' ? 'src/windows' : 'src/linux';
-const ls = require(`./${folder}/cmd_ls`);
-const stop = require(`./${folder}/cmd_stop`);
-const start = require(`./${folder}/cmd_start`);
-const create = require(`./${folder}/cmd_create`);
-const op_delete = require(`./${folder}/cmd_delete`);
-const op_log = require(`./${folder}/cmd_log`);
+const cmd_ls = require(`./${folder}/cmd_ls`);
+const cmd_stop = require(`./${folder}/cmd_stop`);
+const cmd_start = require(`./${folder}/cmd_start`);
+const cmd_create = require(`./${folder}/cmd_create`);
+const cmd_delete = require(`./${folder}/cmd_delete`);
+const cmd_log = require(`./${folder}/cmd_log`);
 const { getServiceList } = require(`./${folder}/utils.os`);
 const { printError } = require('./src/utils');
 
@@ -41,32 +41,32 @@ if (args.err.length > 0) {
 if (args.cmd[0] === 'ls') {
   if (args.opt['all']) {
      if (args.cmd.length > 1) {
-       ls(args.cmd[1], undefined, undefined, args.opt['json']);
+       cmd_ls(args.cmd[1], undefined, undefined, args.opt['json']);
      } else {
-       ls(undefined, undefined, undefined, args.opt['json']);
+       cmd_ls(undefined, undefined, undefined, args.opt['json']);
      }
   } else {
     if (args.cmd.length > 1) {
-      ls('pm2sd', 'pm2sd', args.cmd[1], args.opt['json']);
+      cmd_ls('pm2sd', 'pm2sd', args.cmd[1], args.opt['json']);
     } else {
-      ls('pm2sd', 'pm2sd', undefined, args.opt['json']);
+      cmd_ls('pm2sd', 'pm2sd', undefined, args.opt['json']);
     }
   }
 
 
 } else if (args.cmd[0] === 'log') {
   if (args.cmd[1]) {
-    op_log('pm2sd-' + args.cmd[1]).catch(err => console.error('ERROR', err))
+    cmd_log('pm2sd-' + args.cmd[1]).catch(err => console.error('ERROR', err))
   } else {
-    op_log().catch(err => console.error('ERROR', err))
+    cmd_log().catch(err => console.error('ERROR', err))
   }
 
 
 } else if (args.cmd[0] === 'stop') {
   if (args.cmd[1]) {
-    stop('pm2sd-' + args.cmd[1])
+    cmd_stop('pm2sd-' + args.cmd[1])
       .catch(err => printError(err))
-      .finally(() => ls('pm2sd', 'pm2sd'));
+      .finally(() => cmd_ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "stop"');
   }
@@ -76,10 +76,10 @@ if (args.cmd[0] === 'ls') {
   if (args.cmd[1]) {
     let name = 'pm2sd-' + args.cmd[1];
     console.log(`Stoping service ${name}...`);
-    stop(name, true)
-     .then(()=>start(name))
+    cmd_stop(name, true)
+     .then(()=>cmd_start(name))
      .catch(err => console.error('ERROR', err))
-     .finally(() => ls('pm2sd', 'pm2sd'));
+     .finally(() => cmd_ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "restart"');
   }
@@ -87,9 +87,9 @@ if (args.cmd[0] === 'ls') {
 
 } else if (args.cmd[0] === 'delete') {
   if (args.cmd[1]) {
-    op_delete('pm2sd-' + args.cmd[1])
+    cmd_delete('pm2sd-' + args.cmd[1])
      .catch(err => printError(err))
-     .finally(() => ls('pm2sd', 'pm2sd'));
+     .finally(() => cmd_ls('pm2sd', 'pm2sd'));
   } else {
     console.error('ERROR: there is no service name after "delete"');
   }
@@ -113,9 +113,9 @@ if (args.cmd[0] === 'ls') {
         let possibleName = 'pm2sd-' + args.cmd[1];
         if (res.indexOf(possibleName) !== -1) {
           // start existing service
-          return start(possibleName)
+          return cmd_start(possibleName)
            .catch(err => printError(err))
-           .finally(() => ls('pm2sd', 'pm2sd'));
+           .finally(() => cmd_ls('pm2sd', 'pm2sd'));
         } else {
             if (!args.opt.name) {
               possibleName = 'pm2sd-' + args.cmd[1].replace(/\.js$/, '').replace(/\.sh$/, '');
@@ -127,9 +127,9 @@ if (args.cmd[0] === 'ls') {
             }
             args.opt.name = (args.opt.name.startsWith('pm2sd-')?'':'pm2sd-') + args.opt.name;
 
-            return create(args.cmd[1], args.opt)
+            return cmd_create(args.cmd[1], args.opt)
              .catch(err => printError(err))
-             .finally(() => ls('pm2sd', 'pm2sd'));
+             .finally(() => cmd_ls('pm2sd', 'pm2sd'));
         }
       })
       .catch(err => printError(err))

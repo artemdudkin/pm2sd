@@ -28,7 +28,7 @@ function getStartType() {
   let cmd = 'powershell -command "Get-WmiObject win32_service | Select-Object -Property ProcessId, Name, StartMode | ConvertTo-Csv -NoTypeInformation"';
   return runScript(cmd)
          .then(res => {
-           return parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n'));
+           return parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').filter(l=>!l.startsWith('EXIT')) );
          })
 }
 
@@ -38,7 +38,7 @@ function getUserName() {
   let cmd = 'powershell -command "Get-Process -IncludeUsername | Select-Object -Property Id, Name, UserName | ConvertTo-Csv -NoTypeInformation"';
   return runScript(cmd)
          .then(res => {
-           return parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n'));
+           return parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').filter(l=>!l.startsWith('EXIT')) );
          })
 }
 
@@ -58,7 +58,7 @@ function getCpuPercent() {
   let m1, m2;
   return runScript(cmd)
          .then(res => {
-           m1 = parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').slice(0, -1));
+           m1 = parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').slice(0, -1).filter(l=>!l.startsWith('EXIT')) );
          })
          .then(res => {
            return new Promise((resolve) => setTimeout(resolve, 100))
@@ -66,7 +66,7 @@ function getCpuPercent() {
          .then(() => {
            return runScript(cmd)
                   .then(res => {
-                    m2 = parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').slice(0, -1));
+                    m2 = parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').slice(0, -1).filter(l=>!l.startsWith('EXIT')) );
 
                     total = m2[m2.length-1].PercentProcessorTime - m1[m1.length-1].PercentProcessorTime;
 
@@ -82,7 +82,7 @@ function getCpuPercent() {
 /**
  * Get details for list of service names
  *
- * @returns {warnings:[], data:[{name, description, active, enabled, uptime, pid, memory, user, cpu, Loaded}, ...]}
+ * @returns {warnings:[], data:[{name, description, active, enabled, uptime, pid, memory, user, cpu}, ...]}
  */
 async function getServiceListInfo(res, prefix) {
 //let stime = Date.now();
@@ -110,6 +110,13 @@ async function getServiceListInfo(res, prefix) {
 
 //console.log('getStartType', Date.now()-stime, 'ms'); stime=Date.now();
 
+      res.forEach( service => {
+        service.enabled = (startType.filter( r => r.Name===service.name)[0] || {}).StartMode || '';
+        service.uptime = '';
+        service.memory = '';
+        service.cpu = '';
+        service.user = '';
+      })
 
       let serviceWithPIDList = res.filter( service => (+service.pid));
       if (serviceWithPIDList.length > 0) {
@@ -146,9 +153,14 @@ async function getServiceListInfo(res, prefix) {
                   service.memory = formatMem((d.filter( r => +r.pid === +service.pid)[0] || {}).mem / 1000);
                 }
                 service.cpu = (cpu.filter( r => r.IDProcess == service.pid)[0] || {}).PercentProcessorTime || '';
-                service.enabled = (startType.filter( r => r.Name===service.name)[0] || {}).StartMode || '';
                 service.user = (userName.filter( r => r.Id==service.pid)[0] || {}).UserName || '';
           })
+      }
+
+      if (prefix) {
+        res.forEach( service => {
+          service.name = service.name.replace(prefix + '-', '');
+        })
       }
 
       return {warnings, data:res};

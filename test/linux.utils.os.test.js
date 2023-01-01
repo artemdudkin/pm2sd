@@ -15,9 +15,9 @@ To show all installed unit files use 'systemctl list-unit-files'.`
 
 
 
-describe("#utils.servicelist", function () {
+describe("#linux.utils.os", function () {
 
-  it("[linux] getServiceList", function () {
+  it("getServiceList", function () {
     let commands = []
     const { getServiceList } = proxyquire("../src/linux/utils.os", {
       "../rs": {
@@ -39,7 +39,7 @@ describe("#utils.servicelist", function () {
   });
 
 
-  it("[linux] getServiceList with filter", function () {
+  it("getServiceList with filter", function () {
     const { getServiceList } = proxyquire("../src/linux/utils.os", {
       "../rs": {runScript : (cmd) => Promise.resolve( {lines: [(cmd==='whoami'?'root':ret_1)]})},
     });
@@ -51,7 +51,7 @@ describe("#utils.servicelist", function () {
   });
 
 
-  it("[linux] getServiceList (non-root)", function () {
+  it("getServiceList (non-root)", function () {
     let commands = []
     const { getServiceList } = proxyquire("../src/linux/utils.os", {
       "../rs": {runScript : (cmd) => {

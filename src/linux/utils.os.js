@@ -1,8 +1,9 @@
 const { runScript } = require('../rs');
 const { getCurrentUser } = require('../utils');
 
+
 /**
- * Process string to arrya like this: '  1     2erqr 3  ' => ['1', '2erqr', '3', '']
+ * Process string to array like this: '  1     2erqr 3  ' => ['1', '2erqr', '3', '']
  */
 function splitFormated(str) {
   let ret = ['']
@@ -18,9 +19,10 @@ function splitFormated(str) {
   return ret;
 }
 
+
 /**
  * Returns array of service names from 'systemctl list-unit-files'
- * (also filter by name if any)
+ * (also filtered by name if any)
  */
 let serviceList;
 async function getServiceList(aName) {
@@ -55,17 +57,6 @@ async function getServiceList(aName) {
           });
 }
 
-/*
-let currentUser;
-async function getCurrentUser() {
-  if (!currentUser) { // memoization of current user
-    let whoami = await runScript('whoami');
-    currentUser = whoami.lines.join('').split('\n')[0];
-  } else {
-  }
-  return currentUser;
-}
-*/
 
 function getScriptFolder(user) {
  return ( user === 'root' ? '/usr/sbin/' : `${os.homedir()}/bin/`);
@@ -83,7 +74,6 @@ function getServiceFolder(user) {
 
 
 module.exports = { 
-//  getCurrentUser,
   getServiceList,
 
   getScriptFolder,

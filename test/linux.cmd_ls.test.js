@@ -16,7 +16,8 @@ Sep 24 17:34:50 vds2326517.my-ihor.ru systemd[1]: pm2sd-a.service holdoff time o
 Sep 24 17:34:50 vds2326517.my-ihor.ru systemd[1]: Stopped PM2SD pm2sd-a.
 Sep 24 17:34:50 vds2326517.my-ihor.ru systemd[1]: Starting PM2SD pm2sd-a...
 Sep 24 17:34:50 vds2326517.my-ihor.ru systemd[1]: Started PM2SD pm2sd-a.
-EXOT 0`;
+EXIT 0
+`;
 
 const ret_xyz = '* xyz-vpn.service - XYZ VPN\n'+
 '     Loaded: loaded (/etc/systemd/system/xyz-vpn.service; enabled; vendor preset: enabled)\n'+
@@ -43,7 +44,8 @@ const ret_auditd = `● auditd.service - Security Auditing Service
 
 Sep 22 18:15:36 vds2326517.my-ihor.ru auditd[422]: Audit daemon rotating log files
 Warning: Journal has been rotated since unit was started. Log output is incomplete or unavailable.
-EXIT 0`;
+EXIT 0
+`;
 
 const ret_dead = `● e2scrub_reap.service - Remove Stale Online ext4 Metadata Check Snapshots
      Loaded: loaded (/lib/systemd/system/e2scrub_reap.service; enabled; vendor preset: enabled)
@@ -56,26 +58,28 @@ const ret_dead = `● e2scrub_reap.service - Remove Stale Online ext4 Metadata C
 Dec 17 20:43:35 debian-s-1vcpu-1gb-ams3-01 systemd[1]: Starting Remove Stale Online ext4 Metadata Check Snapshots...
 Dec 17 20:43:37 debian-s-1vcpu-1gb-ams3-01 systemd[1]: e2scrub_reap.service: Succeeded.
 Dec 17 20:43:37 debian-s-1vcpu-1gb-ams3-01 systemd[1]: Finished Remove Stale Online ext4 Metadata Check Snapshots.
-EXIT 0`;
+EXIT 0
+`;
 
 const ret_ps = `%CPU   RSS USER         PID
  0.1  1356 root      1142
  0.2   860 root      1143
  0.3   664 root      1144
  0.5  9660 root       77636
-EXIT 0`;
+EXIT 0
+`;
 
 
-describe("#cmd_ls", function () {
+describe("#linux.cmd_ls", function () {
 
-  it("[linux] ls", function () {
+  it("ls", async function () {
     let commands = []
     let printLsResult;
-    const ls = proxyquire("../src/linux/cmd_ls", {
+    const cmd_ls = proxyquire("../src/linux/cmd_ls", {
       '../rs': {
         runScript : (cmd) => {
           commands.push(cmd);
-          if (cmd.endsWith('abc')) {
+          if (cmd.endsWith('pm2sd-a')) {
             return Promise.resolve( {lines: [ret_abc]})
           } else if (cmd.endsWith('xyz')) {
             return Promise.resolve( {lines: [ret_xyz]})
@@ -94,20 +98,21 @@ describe("#cmd_ls", function () {
          getCurrentUser: () => 'root',
        },
       './utils.os': {
-         getServiceList: () => ['abc', 'xyz', 'auditd', 'e2scrub_reap'],
+         getServiceList: () => ['pm2sd-a', 'xyz', 'auditd', 'e2scrub_reap'],
        }
     });
 
-    return ls()
-    .then(res => {
-      expect(commands).to.deep.equal([
-        'systemctl  status abc',
+    let res = await cmd_ls()
+
+    expect(commands).to.deep.equal([
+        'systemctl  status pm2sd-a',
         'systemctl  status xyz', 
         'systemctl  status auditd', 
         'systemctl  status e2scrub_reap', 
         'ps -p 25107,422,549,1142,1143,1144,1145,77636 -o %cpu -o rss -o user -o pid'
-      ])
-      expect(printLsResult).to.deep.equal([{
+    ])
+
+    expect(printLsResult).to.deep.equal([{
           "Loaded": "loaded (/etc/systemd/system/pm2sd-a.service; enabled; vendor preset: disabled)",
           "active": "active (exited)",
           "children": ["1142","1143","1144","1145"],
@@ -159,7 +164,54 @@ describe("#cmd_ls", function () {
           "uptime": "17min",
           "user": ""
         }
-      ])
-    })
-  });
+    ])
+  })
+
+
+  it("ls with prefix", async function () {
+    let commands = []
+    let printLsResult;
+    const cmd_ls = proxyquire("../src/linux/cmd_ls", {
+      '../rs': {
+        runScript : (cmd) => {
+          commands.push(cmd);
+          if (cmd.endsWith('pm2sd-a')) {
+            return Promise.resolve( {lines: [ret_abc]})
+          } else {
+            return Promise.resolve( {lines: [ret_ps]})
+          }
+        }
+      },
+      '../utils': {
+         loader: {on:()=>{}, off:()=>{}},
+         printLs: (res) => {printLsResult=res},
+         getCurrentUser: () => 'root',
+       },
+      './utils.os': {
+         getServiceList: () => ['pm2sd-a'],
+       }
+    });
+
+    let res = await cmd_ls('pm2sd', 'pm2sd')
+
+    expect(commands).to.deep.equal([
+        'systemctl  status pm2sd-a',
+        'ps -p 25107,1142,1143,1144,1145 -o %cpu -o rss -o user -o pid'
+    ])
+
+    expect(printLsResult).to.deep.equal([{
+          "Loaded": "loaded (/etc/systemd/system/pm2sd-a.service; enabled; vendor preset: disabled)",
+          "active": "active (exited)",
+          "children": ["1142","1143","1144","1145"],
+          "cpu": 0.6000000000000001,
+          "description": "pm2sd-a",
+          "enabled": "enabled",
+          "memory": "2.9mb",
+          "name": "a",
+          "pid": "25107",
+          "uptime": "2s",
+          "user": "root"
+        }
+    ])
+  })
 });

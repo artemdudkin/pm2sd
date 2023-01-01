@@ -1,8 +1,10 @@
+const path = require('path');
 const { runScript } = require('../rs');
 
 
 /**
  * Returns service list [{name, description, type, active, pid}, ... ]
+ * (also filtered by name if any)
  */
 let serviceListExt;
 async function getServiceListExt(aName) {
@@ -48,8 +50,8 @@ async function getServiceListExt(aName) {
   return serviceListExt
     .filter( r => (!aName || r.name.toLowerCase().indexOf(n) !== -1))
     .sort((a, b) => {
-      const nameA = a.name.toUpperCase();
-      const nameB = b.name.toUpperCase();
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
       if (nameA < nameB) return -1;
       if (nameA > nameB) return 1;
       return 0;
@@ -59,7 +61,7 @@ async function getServiceListExt(aName) {
 
 /**
  * Returns array of service names 
- * (also filter by name if any)
+ * (also filtered by name if any)
  */
 async function getServiceList(aName) {
   let ret = await getServiceListExt(aName);
@@ -67,26 +69,33 @@ async function getServiceList(aName) {
 }
 
 
-function getScriptFolder(user) {
- return '';
+function getLogFolder() {
+  return "C:\\logs";
+}
+
+/**
+ * Get location of installed node.js
+ */
+async function getNodePath() {
+  let nodePath;
+  let res = await runScript('npm config ls -l | grep prefix');
+  let lines = res.lines.join('').split('\n').filter(i=>i.indexOf('EXIT')===-1);
+  lines.forEach(line => {
+    let l = line.replace(/\r/g, '').split(' = ');
+    if (l[0] === 'prefix') nodePath = l[1].trim().replace(/"$/, '').replace(/^"/, '').replace(/\\\\/g, '\\')
+  })
+  if (nodePath) nodePath = path.join(nodePath, 'node.exe');
+  return nodePath;
 }
 
 
-function getLogFolder(user) {
-  return '';
-}
-
-
-function getServiceFolder(user) {
-  return '';
-}
 
 
 module.exports = { 
   getServiceList,
   getServiceListExt,
 
-  getScriptFolder,
   getLogFolder,
-  getServiceFolder,
+
+  getNodePath,
 };

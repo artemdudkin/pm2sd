@@ -14,7 +14,7 @@ const loader = {
         const frame = loader.frames[loader.index = ++loader.index % loader.frames.length];
         process.stdout.write(` ${frame}`);
         process.stdout.moveCursor(-2, 0)
-      }, 200);
+      }, 250);
     }
   },
   off: function() {
@@ -107,8 +107,8 @@ function printLs(result) {
     name = formatL( name, 20);
     pid  = formatL( pid, 8); 
     uptime  = formatL( uptime.replace(' days', 'D').replace(' day', 'D').replace('min', 'm').replace(' weeks', 'W').replace(' week', 'W').replace(' months', 'M').replace(' month', 'M').replace(' years', 'Y').replace(' year', 'Y'), 6);
-    let status = (active.startsWith('active') || active==='RUNNING' ? clc.green : clc.red)(formatL(active, 11));
-    enabled = enabled==='enabled' || enabled==='Auto' ? clc.green(formatL(enabled, 11)) : enabled.trim().length===0 ? clc.red(formatL('?', 9)) : clc.red(formatL(enabled, 11));
+    let status = ((active.startsWith('active') || active==='RUNNING') ? clc.green : clc.red)(formatL(active, 11));
+    enabled = (enabled==='enabled' || enabled==='Auto') ? clc.green(formatL(enabled, 11)) : enabled.trim().length===0 ? clc.red(formatL('?', 11)) : clc.red(formatL(enabled, 11));
     let mem = formatL( memory.replace('M', 'mb'), 8);
     user = formatR(user, 8);
     cpu = formatL(memory && cpu ? Math.round(cpu*10)/10 : '', 8);
