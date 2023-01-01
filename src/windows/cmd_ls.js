@@ -43,8 +43,6 @@ function getUserName() {
 }
 
 
-
-
 /**
  * Get %cpu of all processes - [{"IDProcess":"5392", "Name": "avp","PercentProcessorTime": 3.0701754385964914}, ...]
  *
@@ -80,54 +78,19 @@ function getCpuPercent() {
 
 
 /**
- * Get details for list of service names
+ * Get memory and uptime of selected processes - [{ pid, mem, uptime }, ...]
  *
- * @returns {warnings:[], data:[{name, description, active, enabled, uptime, pid, memory, user, cpu}, ...]}
+ * @returns Promise
  */
-async function getServiceListInfo(res, prefix) {
-//let stime = Date.now();
-
-      let warnings = []
-      
-      let userName = []
-      try {
-        userName = await getUserName()
-      } catch (err) {
-          if (err && err.lines && err.lines instanceof Array && err.lines.join('').indexOf('IncludeUserNameRequiresElevation') !== -1) {
-            warnings.push('Please start script as Administrator to get user of processes');
-          } else {
-            return Promise.reject(err);
-          }
-      }
-
-//console.log('getUserName', Date.now()-stime, 'ms'); stime=Date.now();
-
-      let cpu = await getCpuPercent();// res.filter(i=>(+i.pid)).map(i=>(+i.pid)) )
-
-//console.log('getCpuPercent', Date.now()-stime, 'ms'); stime=Date.now();
-
-      let startType = await getStartType()
-
-//console.log('getStartType', Date.now()-stime, 'ms'); stime=Date.now();
-
-      res.forEach( service => {
-        service.enabled = (startType.filter( r => r.Name===service.name)[0] || {}).StartMode || '';
-        service.uptime = '';
-        service.memory = '';
-        service.cpu = '';
-        service.user = '';
-      })
-
+async function getMU(res) {
       let serviceWithPIDList = res.filter( service => (+service.pid));
       if (serviceWithPIDList.length > 0) {
           let p = 'processid=' + serviceWithPIDList.map(service => (+service.pid)).join(' or processid=');
           let data = await runScript(`wmic process where (${p}) get CreationDate, ProcessId, WorkingSetSize`)
 
-//console.log('wmic', Date.now()-stime, 'ms'); stime=Date.now();
-
           let dateList = data.lines.join('').replace(/\r/g, '').split('\n');
           dateList = dateList.slice(1, dateList.length);
-          let d = dateList.map(line => {
+          return dateList.map(line => {
             let pos = line.indexOf(' ');
             let date = line.substring(0, pos).trim();
 
@@ -146,22 +109,57 @@ async function getServiceListInfo(res, prefix) {
 
             return { pid, mem, uptime }
           })
-
-          res.forEach( service => {
-                if (+service.pid) {
-                  service.uptime = (d.filter( r => +r.pid === +service.pid)[0] || {}).uptime || '';
-                  service.memory = formatMem((d.filter( r => +r.pid === +service.pid)[0] || {}).mem / 1000);
-                }
-                service.cpu = (cpu.filter( r => r.IDProcess == service.pid)[0] || {}).PercentProcessorTime || '';
-                service.user = (userName.filter( r => r.Id==service.pid)[0] || {}).UserName || '';
-          })
       }
+      return [];
+}
 
-      if (prefix) {
-        res.forEach( service => {
-          service.name = service.name.replace(prefix + '-', '');
-        })
-      }
+
+/**
+ * Get details for list of service names
+ *
+ * @returns {warnings:[], data:[{name, description, active, enabled, uptime, pid, memory, user, cpu}, ...]}
+ */
+async function getServiceListInfo(res, prefix) {
+//let stime = Date.now();
+
+      let warnings = []
+
+      let p1 = getUserName().catch(err => {
+          if (err && err.lines && err.lines instanceof Array && err.lines.join('').indexOf('IncludeUserNameRequiresElevation') !== -1) {
+            warnings.push('Please start script as Administrator to get user of processes');
+            return [];
+          } else {
+            return Promise.reject(err);
+          }
+      })
+
+      let p2 = getCpuPercent();
+
+      let p3 = getStartType()
+
+      let p4 = getMU(res);
+
+      let [userName, cpu, startType, d] = await Promise.all([p1, p2, p3, p4])
+
+//console.log('all', Date.now()-stime, 'ms'); stime=Date.now();
+
+      res.forEach( service => {
+        service.enabled = '';
+        service.uptime = '';
+        service.memory = '';
+        service.cpu = '';
+        service.user = '';
+
+        service.enabled = (startType.filter( r => r.Name===service.name)[0] || {}).StartMode || '';
+        if (+service.pid) {
+          service.uptime = (d.filter( r => +r.pid === +service.pid)[0] || {}).uptime || '';
+          service.memory = formatMem((d.filter( r => +r.pid === +service.pid)[0] || {}).mem / 1000);
+        }
+        service.cpu = (cpu.filter( r => r.IDProcess == service.pid)[0] || {}).PercentProcessorTime || '';
+        service.user = (userName.filter( r => r.Id==service.pid)[0] || {}).UserName || '';
+
+        if (prefix) service.name = service.name.replace(prefix + '-', '');
+      })
 
       return {warnings, data:res};
 }
