@@ -1,3 +1,4 @@
+const os = require('os');
 const { runScript } = require('../rs');
 const { getCurrentUser } = require('../utils');
 
