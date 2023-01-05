@@ -59,4 +59,4 @@ Tails log of selected process (`pm2sd log <name>`) or logs for all processes if 
 
 1. If you've got `Failed to connect to D-Bus` that means you're trying to work under non-root user, which requires the systemd user service to be started (look at [this](./doc/d-bus-black-magic.md)).
 
-2. If service do not startup at boot for non-root user, please check if user lingering turned on.
+2. If service does not start at boot for non-root user, please check if user lingering is enabled (look at [this](./doc/d-bus-black-magic.md)).
