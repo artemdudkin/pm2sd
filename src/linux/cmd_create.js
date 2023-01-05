@@ -115,7 +115,7 @@ WantedBy=${currentUser==='root'?'multi-user.target':'default.target'}
         if (!fs.existsSync(`${os.homedir()}/.pm2sd-logrotate.conf`)) {
           fs.writeFileSync(`${os.homedir()}/.pm2sd-logrotate.conf`, `~/log/pm2sd-*/*.log\n${config}`);
           fs.writeFileSync(`${os.homedir()}/.pm2sd-logrotate-state`, '');
-          await runScript('(crontab -l; echo "1 * * * * /sbin/logrotate -s ~/.pm2sd-logrotate-state ~/.pm2sd-logrotate.conf")|awk \'!x[$0]++\'|crontab -');
+          await runScript('(crontab -l; echo "1 * * * * /usr/sbin/logrotate -s ~/.pm2sd-logrotate-state ~/.pm2sd-logrotate.conf")|awk \'!x[$0]++\'|crontab -');
         }
       }
     }
