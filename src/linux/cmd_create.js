@@ -4,13 +4,14 @@ const { resolve } = require('path');
 var clc = require("cli-color");
 const { runScript } = require('../rs');
 const { getCurrentUser } = require('../utils');
-const { getServiceList, getScriptFolder, getLogFolder, getServiceFolder } = require('./utils.os');
+const { getServiceList, getScriptFolder, getLogFolder, getServiceFolder, prepareEnv } = require('./utils.os');
 
 /**
  * @param {String} fn
  * @param {Object} opt {name, user, description, time}
  */
 async function create(fn, opt) {
+  await prepareEnv();
   let currentUser = await getCurrentUser();
 
   if (!opt.user) opt.user = currentUser;

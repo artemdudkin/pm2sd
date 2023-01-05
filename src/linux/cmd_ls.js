@@ -1,7 +1,7 @@
 var clc = require("cli-color");
 const { runScript } = require('../rs');
 const { loader, getCurrentUser, formatMem, formatL, printLs, printError } = require('../utils');
-const { getServiceList } = require('./utils.os');
+const { getServiceList, prepareEnv } = require('./utils.os');
 
 
 function processLines(lines, prefix) {
@@ -153,6 +153,7 @@ async function getServiceListInfo(res, prefix) {
 
 
 async function ls(name, prefix, filterStr, isJson) {
+  await prepareEnv();
   loader.on();
   try {
     let s = await getServiceList(name)

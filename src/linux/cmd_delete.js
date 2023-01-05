@@ -3,10 +3,11 @@ const { resolve } = require('path');
 var clc = require("cli-color");
 const { runScript } = require('../rs');
 const { getCurrentUser } = require('../utils');
-const { getScriptFolder, getLogFolder, getServiceFolder } = require('./utils.os');
+const { getScriptFolder, getLogFolder, getServiceFolder, prepareEnv } = require('./utils.os');
 const cmd_stop = require('./cmd_stop');
 
 async function start(serviceName) {
+  await prepareEnv();
   let currentUser = await getCurrentUser();
 
   let scriptFolder = getScriptFolder(currentUser);

@@ -3,7 +3,7 @@ const clc = require("cli-color");
 const { runScript } = require('../rs');
 const { formatL } = require('../utils');
 const { getCurrentUser } = require('../utils');
-const { getServiceList, getLogFolder } = require('./utils.os');
+const { getServiceList, getLogFolder, prepareEnv } = require('./utils.os');
 
 /**
  * Pipes output of 'cmd' bash script to console with 'name' prefix and colored by 'colorFunc' of cli-color
@@ -44,6 +44,7 @@ async function systemdIds() {
 
 
 async function log(serviceName) {
+  await prepareEnv();
   let currentUser = await getCurrentUser();
   let logFolder = getLogFolder(currentUser);
   let serviceList = (serviceName ? [serviceName] : await getServiceList('pm2sd'));
