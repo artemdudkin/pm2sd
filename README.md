@@ -57,4 +57,4 @@ Tails log of selected process (`pm2sd log <name>`) or logs for all processes if 
 
 ## Troubleshooting
 
-If you've got `Failed to connect to D-Bus` that means you're trying to work under non-root user, which requires the systemd user service to be started (look at [this](./doc/d-bus-black-magic.md)). Or you switched to user by `su <user>` instead of ssh login.
+If you've got `Failed to connect to D-Bus` that means you're trying to work under non-root user, which requires the systemd user service to be started (look at [this](./doc/d-bus-black-magic.md)).
