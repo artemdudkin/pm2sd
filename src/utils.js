@@ -84,7 +84,7 @@ function printError(err) {
          || err.lines[0].indexOf('Failed to get D-Bus connection')!==-1 //ubuntu
         )
     ) {
-      console.log('\n' + clc.red('Failed to connect to D-Bus (systemd user service is not running or "su <user>" was used to change user instead of login).') + '\n');
+      console.log('\n' + clc.red('Failed to connect to D-Bus (systemd user service is not running).') + '\n');
     } else {
       console.error('ERROR', err)
     }
