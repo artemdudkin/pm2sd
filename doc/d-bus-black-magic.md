@@ -1,14 +1,10 @@
 1. There are two use cases for non-root users at Linux: (1) configure service as root and run service as non-root and (2) configure and run service as non-root. This instructions is all about second option (as first option available by default).
 
-2. To configure service, login as selected user and do not use `su - <user>` (because it causes error `Failed to get D-Bus connection: Connection refused`)
+2. Do `loginctl enable-linger <user>` from privileged user
 
-3. But first, before service configuring, please do next three steps (4-6).
+3. Add user to group systemd-journal by `usermod -a -G systemd-journal <user>`  from privileged user
 
-4. Do `loginctl enable-linger <user>` from privileged user
-
-5. Add user to group systemd-journal by `usermod -a -G systemd-journal <user>`
-
-6. If you have RHEL or CentOS then you should enable systemd user service for selected user (as Red Hat disabled the systemd user service by default) - please follow [this instruction from SO](https://serverfault.com/a/1026914):
+4. If you have RHEL or CentOS then you should enable systemd user service for selected user (as Red Hat disabled the systemd user service by default) - please follow [this instruction from SO](https://serverfault.com/a/1026914):
 
 > I've noticed the tableau server uses --user systemd services - they even have a note about this in their docs: https://help.tableau.com/current/server-linux/en-us/systemd_user_service_error.htm
 >
