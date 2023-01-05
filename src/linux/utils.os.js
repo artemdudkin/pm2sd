@@ -32,13 +32,14 @@ async function getServiceList(aName) {
     let res = await runScript(`systemctl ${currentUser==='root'?'':'--user'} list-units --type=service --all`)
     
     let r = res.lines.join('').split('\n');
+    let unit_pos = res.lines[0].indexOf('UNIT'); //it can be shifted by 2 spaces or not (see tests)
     r.shift(0);
 
     let emptyLineFound = false;
     r = r.filter((i, index) => emptyLineFound ? false : i.length==0 ? (emptyLineFound=true)&&false : true )
 
     r = r.map(i=>{
-              i = i.substring(2);
+              i = i.substring(unit_pos);
               let {0:unit, 1:load, 2:active, 3:sub, 4:description} = splitFormated(i);
               return {unit, load, active, sub, description}
             })
