@@ -2,6 +2,10 @@ const os = require('os');
 var clc = require("cli-color");
 
 
+/**
+ * Prints rotating loader at console
+ * @methods on, off
+ */
 const loader = {
   frames : ['-', '\\', '|', '/'],
   index  : 0,
@@ -26,6 +30,9 @@ const loader = {
 }
 
 
+/**
+ * Returns name of current operating system user
+ */
 let currentUser;
 async function getCurrentUser() {
   if (!currentUser) { // memoization of current user
@@ -36,6 +43,10 @@ async function getCurrentUser() {
 }
 
 
+/**
+ * Prints 'time ago' in human readable form
+ * for instance, relativeTime(1673050022000) = '11h 45min' (if it was run at Jan 07 2023 14:54:08 GMT+0300)
+ */
 function relativeTime(timestamp) {
   const msPerMinute = 60 * 1000;
   const msPerHour = msPerMinute * 60;
@@ -66,6 +77,7 @@ function relativeTime(timestamp) {
 
 
 /**
+ * Prints warnings (grey color messages before result table)
  * @param {Array} warnings (array of String)
  */
 function printWarnings(warnings) {
@@ -92,6 +104,7 @@ function printError(err) {
 
 
 /**
+ * Prints colored table of services
  * @param {Object} result [{name, active, enabled, uptime, pid, memory, user, cpu}, ...]
  */
 function printLs(result) {
@@ -123,6 +136,10 @@ function printLs(result) {
 }
 
 
+/**
+ * Converts number of kilobytes to human readable form (using 1000-based reduction), with one digit after decimal point if needed
+ * for instance, formatMem(1111) = '1.1mb'
+ */
 function formatMem( mem) {
   if (typeof mem === 'undefined') {
     return mem;
@@ -138,6 +155,10 @@ function formatMem( mem) {
 }
 
 
+/**
+ * Adds spaces after string if it is too short (or ellipsis as last symbol if it is longer),
+ * for instance, formatL('1', 3) = '1  ' and formatL('1234', 3) = '12..'
+ */
 function formatL( s, len) {
   s = '' + (typeof s === 'undefined' ? '' : s);
   if (s.length > len) s = s.substring(0, len-1) +  '\u0324';
@@ -146,6 +167,10 @@ function formatL( s, len) {
 }
 
 
+/**
+ * Adds spaces before string if it is too short (or ellipsis as first symbol if it is longer),
+ * for instance, formatL('1', 3) = '  1' and formatL('1234', 3) = '..34'
+ */
 function formatR( s, len) {
   s = '' + (typeof s === 'undefined' ? '' : s);
   if (s.length > len) s = '\u0324' + s.substring(s.length-len+1, s.length);
@@ -154,6 +179,58 @@ function formatR( s, len) {
 }
 
 
+/**
+ * Process string to array like this: '  1     2erqr 3  ' => ['1', '2erqr', '3']
+ */
+function splitFormated(str) {
+  let ret = ['']
+  let index=0;
+  for (let i=0; i<str.length; i++) {
+    if (str[i] !== ' ') {
+      ret[index] = ret[index]+str[i];
+    } else if (ret[index] && ret[index].length!==0){
+      index++;
+      ret[index] = '';
+    }
+  }
+  if (ret.length>0 && ret[ret.length-1].length===0) ret.pop();
+  return ret;
+}
+
+
+/**
+ * Converts array of lines of comma separated string (or after any other tokenizer given by splitFunc argument) to object, 
+ * while first line should be name of columns 
+ * @param lines {Array of String}
+ * @param splitFunc {Function(String)} (optional) retuns tokinized string in array of string; `split(',')` by default
+ *
+ * For instance, parseOutputWithHeaders(['"pid","name"', '"123","xyz"', '"666","dev"']) = [{pid:'123',name:'xyz'},{pid:'666',name:'dev'}]
+ * and parseOutputWithHeaders(['  id fullname', '    1      X', '3 D'], splitFormated) = [{id:'1',fullname:'X'},{id:'3',fullname:'D'}]
+ */
+function parseOutputWithHeaders(lines, splitFunc) {
+  splitFunc = splitFunc || ((s)=>{return s.split(',')})
+  let headers = splitFunc(lines[0]).map(i=>i.trim().replace(/^"/, '').replace(/"$/, ''));
+  return lines
+         .slice(1)
+         .filter(l=>l.length>0)
+         .map(s => {
+           s = splitFunc(s).map(i=>i.trim().replace(/^"/, '').replace(/"$/, ''));
+           let o = {}
+           headers.forEach( (header, index) => o[header]=s[index]);
+           return o;
+         });
+}
+
+
+/**
+ * Process response of runScript
+ * 1. gets .lines (array of result string)
+ * 2. gets rid of possibility of one line splitting into several due to buffering 
+ * 3. removes last line with 'EXIT XXX'
+ */
+function getRunScriptLines(res) {
+  return res.lines.join('').replace(/\r/g, '').split('\n').filter(l=>!l.startsWith('EXIT'));
+}
 
 
 module.exports = {
@@ -163,6 +240,9 @@ module.exports = {
   formatMem,
   formatL,
   formatR,
+  splitFormated,
+  parseOutputWithHeaders,
+  getRunScriptLines,
   printLs,
   printWarnings,
   printError,

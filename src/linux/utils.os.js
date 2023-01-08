@@ -1,6 +1,6 @@
 const os = require('os');
 const { runScript } = require('../rs');
-const { getCurrentUser } = require('../utils');
+const { getCurrentUser, splitFormated } = require('../utils');
 
 
 async function prepareEnv() {
@@ -9,25 +9,6 @@ async function prepareEnv() {
     //to avoid 'Failed to connect to bus' error
     process.env.XDG_RUNTIME_DIR = `/run/user/${os.userInfo().uid}`;
   }
-}
-
-
-
-/**
- * Process string to array like this: '  1     2erqr 3  ' => ['1', '2erqr', '3', '']
- */
-function splitFormated(str) {
-  let ret = ['']
-  let index=0;
-  for (let i=0; i<str.length; i++) {
-    if (str[i] !== ' ') {
-      ret[index] = ret[index]+str[i];
-    } else if (ret[index] && ret[index].length!==0){
-      index++;
-      ret[index] = '';
-    }
-  }
-  return ret;
 }
 
 

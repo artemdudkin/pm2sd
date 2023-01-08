@@ -9,30 +9,6 @@ const ret_getProcess = `"Id","Name","UserName"
 EXIT 0
 `;
 
-const ret_PerfProc = [`"IDProcess","Name","PercentProcessorTime"
-"0","Idle","131831093750"
-"4","System","395000000"
-"15324","svchost#73","7500000"
-"132","Registry","7812500"
-"0","_Total","136662656250"
-EXIT 0
-`,
-`"IDProcess","Name","PercentProcessorTime"
-"0","Idle","131831093750"
-"4","System","395000000"
-"15324","svchost#73","7500002"
-"132","Registry","7812500"
-"0","_Total","136662656350"
-EXIT 0
-`];
-
-const ret_startType = `"ProcessId","Name","StartMode"
-"0","ALG","Manual"
-"10312","AppIDSvc","Manual"
-"15324","AarSvc_40442","Manual"
-"0","pm2sd-test","Auto"
-EXIT 0
-`
 
 const f2 = (n) => (n < 10 ? '0'+n : ''+n)
 const d = new Date( Date.now() - 4020000);
@@ -56,10 +32,6 @@ describe("#windows.cmd_ls", function () {
           commands.push(cmd);
           if (cmd.indexOf('Get-Process') !== -1) {
             return Promise.resolve( {lines: [ret_getProcess]})
-          } else if (cmd.indexOf('Win32_PerfRawData_PerfProc_Process') !== -1) {
-            return Promise.resolve( {lines: [ret_PerfProc[countPerfProc++]]})
-          } if (cmd.indexOf('win32_service') !== -1) {
-            return Promise.resolve( {lines: [ret_startType]})
           } else {
             return Promise.resolve( {lines: [ret_wmic]})
           }
@@ -82,7 +54,20 @@ describe("#windows.cmd_ls", function () {
            type: 'WIN32_OWN_PROCESS',
            active: 'STOPPED',
            pid: ''
-         }]
+         }],
+/*         getStartTypeAll : () => Promise.resolve([
+           {"Name": "ALG", "ProcessId": "0", "StartMode": "Manual"},
+           {"Name": "AppIDSvc", "ProcessId": "10312", "StartMode": "Manual"},
+           {"Name": "AarSvc_40442", "ProcessId": "15324", "StartMode": "Manual"},
+           {"Name": "pm2sd-test", "ProcessId": "0", "StartMode": "Auto"}
+         ]),*/
+         getStartType : () => Promise.resolve([
+           {"Name": "AarSvc_40442", "ProcessId": "15324", "StartMode": "Manual"},
+           {"Name": "pm2sd-test", "ProcessId": "1234", "StartMode": "Auto"}
+         ]),
+         getCpuPercent_wmic: () => Promise.resolve([
+           {IDProcess: "15324", Name: "AarSvc_40442", PercentProcessorTime: 2}
+         ])
        }
     });
 
@@ -90,10 +75,7 @@ describe("#windows.cmd_ls", function () {
 
     expect(commands).to.deep.equal([
       'powershell -command "Get-Process -IncludeUsername | Select-Object -Property Id, Name, UserName | ConvertTo-Csv -NoTypeInformation"',
-      'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"',
-      'powershell -command "Get-WmiObject win32_service | Select-Object -Property ProcessId, Name, StartMode | ConvertTo-Csv -NoTypeInformation"',
       'wmic process where (processid=15324) get CreationDate, ProcessId, WorkingSetSize',
-      'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"',
     ])
 
     expect(printLsResult).to.deep.equal([{
@@ -135,10 +117,6 @@ describe("#windows.cmd_ls", function () {
           commands.push(cmd);
           if (cmd.indexOf('Get-Process') !== -1) {
             return Promise.resolve( {lines: [ret_getProcess]})
-          } else if (cmd.indexOf('Win32_PerfRawData_PerfProc_Process') !== -1) {
-            return Promise.resolve( {lines: [ret_PerfProc[countPerfProc++]]})
-          } if (cmd.indexOf('win32_service') !== -1) {
-            return Promise.resolve( {lines: [ret_startType]})
           } else {
             return Promise.resolve( {lines: [ret_wmic]})
           }
@@ -155,7 +133,11 @@ describe("#windows.cmd_ls", function () {
            type: 'WIN32_OWN_PROCESS',
            active: 'STOPPED',
            pid: ''
-         }]
+         }],
+         getStartType : () => Promise.resolve([
+           {"Name": "pm2sd-test", "ProcessId": "1234", "StartMode": "Auto"}
+         ]),
+         getCpuPercent_wmic: () => Promise.resolve([])
        }
     });
 
@@ -163,12 +145,7 @@ describe("#windows.cmd_ls", function () {
 
     expect(commands).to.deep.equal([
       'powershell -command "Get-Process -IncludeUsername | Select-Object -Property Id, Name, UserName | ConvertTo-Csv -NoTypeInformation"',
-      'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"',
-      'powershell -command "Get-WmiObject win32_service | Select-Object -Property ProcessId, Name, StartMode | ConvertTo-Csv -NoTypeInformation"',
-      'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"',
     ])
-
-//console.log('printLsResult', printLsResult);
 
     expect(printLsResult).to.deep.equal([{
           "name": "test",

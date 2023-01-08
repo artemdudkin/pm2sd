@@ -1,78 +1,16 @@
 const clc = require("cli-color");
 const { runScript } = require('../rs');
-const { loader, printLs, printWarnings, printError, formatMem, relativeTime } = require('../utils');
-const { getServiceListExt } = require('./utils.os');
+const { loader, printLs, printWarnings, printError, formatMem, relativeTime, splitFormated, parseOutputWithHeaders, getRunScriptLines } = require('../utils');
+const { getServiceListExt, getStartTypeAll, getStartType, getCpuPercent_wmic } = require('./utils.os');
 
 
-/**
- * Parse array of lines with comma separated string (while first line should be name of columns)
- * ['"pid","name"', '"123","xyz"', '"666","dev"'] -> [{pid:'123',name:'xyz'},{pid:'666',name:'dev'}]
- */
-function parseOutputWithHeaders(lines) {
-  let headers = lines[0].split(',').map(i=>i.substring(1, i.length-1));
-  return lines.slice(1).map(s => {
-    s = s.split(',').map(i=>i.substring(1, i.length-1));
-    let o = {}
-    headers.forEach( (header, index) => o[header]=s[index]);
-    return o;
-  });
-}
-
-
-/**
- * Get start type of all services - [{"ProcessId":"5392", "Name": "avp","StartMode": "Auto"}, ...]
- *
- * @returns Promise
- */
-function getStartType() {
-  let cmd = 'powershell -command "Get-WmiObject win32_service | Select-Object -Property ProcessId, Name, StartMode | ConvertTo-Csv -NoTypeInformation"';
-  return runScript(cmd)
-         .then(res => {
-           return parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').filter(l=>!l.startsWith('EXIT')) );
-         })
-}
-
-
-function getUserName() {
-//  let cmd = 'chcp 437 > nul && powershell -command "Get-Process -IncludeUsername | Select-Object -Property Id, Name, UserName | ConvertTo-Csv -NoTypeInformation"';
+function getUserNameAll() {
+//  let cmd = 'chcp 65001 > nul && powershell -command "Get-Process -IncludeUsername | Select-Object -Property Id, Name, UserName | ConvertTo-Csv -NoTypeInformation"';
   let cmd = 'powershell -command "Get-Process -IncludeUsername | Select-Object -Property Id, Name, UserName | ConvertTo-Csv -NoTypeInformation"';
   return runScript(cmd)
          .then(res => {
-           return parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').filter(l=>!l.startsWith('EXIT')) );
-         })
-}
-
-
-/**
- * Get %cpu of all processes - [{"IDProcess":"5392", "Name": "avp","PercentProcessorTime": 3.0701754385964914}, ...]
- *
- * @returns Promise
- */
-function getCpuPercent() {
-//  let cmd = 'powershell -command "Get-WmiObject -Query \\"Select IDProcess, Name, PercentProcessorTime from Win32_PerfRawData_PerfProc_Process where IDProcess=5124\\" | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"';
-  let cmd = 'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"';
-//  let p = '($_.IDProcess -eq "' + pids.join('") -or ($_.IDProcess -eq "') + '")';
-//  let cmd = `powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Where-Object {${p}}| Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"`;
-  let m1, m2;
-  return runScript(cmd)
-         .then(res => {
-           m1 = parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').slice(0, -1).filter(l=>!l.startsWith('EXIT')) );
-         })
-         .then(res => {
-           return new Promise((resolve) => setTimeout(resolve, 100))
-         })
-         .then(() => {
-           return runScript(cmd)
-                  .then(res => {
-                    m2 = parseOutputWithHeaders( res.lines.join('').replace(/\r/g, '').split('\n').slice(0, -1).filter(l=>!l.startsWith('EXIT')) );
-
-                    total = m2[m2.length-1].PercentProcessorTime - m1[m1.length-1].PercentProcessorTime;
-
-                    return m1.slice(0, -1).map( line => {
-                      let m2line = m2.filter(m2line=>m2line.IDProcess===line.IDProcess&&m2line.Name===line.Name)[0]
-                      return {IDProcess:line.IDProcess, Name:line.Name, PercentProcessorTime: (m2line?(m2line.PercentProcessorTime-line.PercentProcessorTime)*100.0/total:0)}
-                    }).sort((a, b)=>a.PercentProcessorTime-b.PercentProcessorTime)
-                  })
+           let ret = parseOutputWithHeaders( getRunScriptLines(res) );
+           return ret;
          })
 }
 
@@ -88,7 +26,7 @@ async function getMU(res) {
           let p = 'processid=' + serviceWithPIDList.map(service => (+service.pid)).join(' or processid=');
           let data = await runScript(`wmic process where (${p}) get CreationDate, ProcessId, WorkingSetSize`)
 
-          let dateList = data.lines.join('').replace(/\r/g, '').split('\n');
+          let dateList = getRunScriptLines(data);
           dateList = dateList.slice(1, dateList.length);
           return dateList.map(line => {
             let pos = line.indexOf(' ');
@@ -124,7 +62,7 @@ async function getServiceListInfo(res, prefix) {
 
       let warnings = []
 
-      let p1 = getUserName().catch(err => {
+      let p1 = getUserNameAll().catch(err => {
           if (err && err.lines && err.lines instanceof Array && err.lines.join('').indexOf('IncludeUserNameRequiresElevation') !== -1) {
             warnings.push('Please start script as Administrator to get user of processes');
             return [];
@@ -132,12 +70,17 @@ async function getServiceListInfo(res, prefix) {
             return Promise.reject(err);
           }
       })
+//      .then(res=>{console.log('getUserNameAll', Date.now()-stime, 'ms');return res;})
 
-      let p2 = getCpuPercent();
+      let p2 = getCpuPercent_wmic()
+//               .then(res=>{console.log('getCpuPercent', Date.now()-stime, 'ms');return res;})
 
-      let p3 = getStartType()
+      let p3 = res.length > 20
+               ? getStartTypeAll()//.then(res=>{console.log('getStartTypeAll', Date.now()-stime, 'ms');return res;})
+               : getStartType(res.map(i=>i.name))//.then(res=>{console.log('getStartType', Date.now()-stime, 'ms');return res;})
 
-      let p4 = getMU(res);
+      let p4 = getMU(res)
+//               .then(res=>{console.log('getMU', Date.now()-stime, 'ms');return res;})
 
       let [userName, cpu, startType, d] = await Promise.all([p1, p2, p3, p4])
 

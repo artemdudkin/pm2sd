@@ -65,6 +65,75 @@ DISPLAY_NAME: ANodeLogger
 ` ;
 
 
+const ret_startType = `"ProcessId","Name","StartMode"
+"0","ALG","Manual"
+"10312","AppIDSvc","Manual"
+"15324","AarSvc_40442","Manual"
+"0","pm2sd-test","Auto"
+EXIT 0
+`
+
+const ret_startType_sc = `[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: WSearch
+        TYPE               : 10  WIN32_OWN_PROCESS
+        START_TYPE         : 2   AUTO_START  (DELAYED)
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : C:\WINDOWS\system32\SearchIndexer.exe /Embedding
+        LOAD_ORDER_GROUP   :
+        TAG                : 0
+        DISPLAY_NAME       : Windows Search
+        DEPENDENCIES       : RPCSS
+                           : BrokerInfrastructure
+        SERVICE_START_NAME : LocalSystem
+[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: SSDPSRV
+        TYPE               : 20  WIN32_SHARE_PROCESS
+        START_TYPE         : 3   DEMAND_START
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : C:\WINDOWS\system32\svchost.exe -k LocalServiceAndNoImpersonation -p
+        LOAD_ORDER_GROUP   :
+        TAG                : 0
+        DISPLAY_NAME       : Обнаружение SSDP
+        DEPENDENCIES       : HTTP
+                           : NSI
+        SERVICE_START_NAME : NT AUTHORITY\LocalService
+
+EXIT 0
+`
+
+
+const ret_PerfProc = [`"IDProcess","Name","PercentProcessorTime"
+"0","Idle","131831093750"
+"4","System","395000000"
+"15324","svchost#73","7500000"
+"132","Registry","7812500"
+"0","_Total","136662656250"
+EXIT 0
+`,
+`"IDProcess","Name","PercentProcessorTime"
+"0","Idle","131831093830"
+"4","System","395000000"
+"15324","svchost#73","7500002"
+"132","Registry","7812500"
+"0","_Total","136662656350"
+EXIT 0
+`];
+
+const ret_PerfProc_2 = `IDProcess  Name                          PercentProcessorTime
+6516       AsusNumPadService             0
+15324      AsusOSD                       16
+0          Idle                          773
+0          _Total                        800
+EXIT 0
+`;
+
+
+
+
+
+
 
 
 describe("#windows.utils.os", function () {
@@ -118,7 +187,7 @@ describe("#windows.utils.os", function () {
 
     let res = await getServiceListExt();
 
-    expect(executed_commands).to.deep.equal(['sc queryex type=service state=all'])
+    expect(executed_commands).to.deep.equal(['chcp 437 > nul && sc queryex type=service state=all'])
     expect(res).to.deep.equal([{
           "name": "ALG",
           "description": "Служба шлюза уровня приложения",
@@ -154,7 +223,7 @@ describe("#windows.utils.os", function () {
 
     let res = await getServiceList();
 
-    expect(executed_commands).to.deep.equal(['sc queryex type=service state=all'])
+    expect(executed_commands).to.deep.equal(['chcp 437 > nul && sc queryex type=service state=all'])
     expect(res).to.deep.equal(["ALG", "ANodeLogger", "WpnUserService_c3150"]);
   });
 
@@ -172,9 +241,139 @@ describe("#windows.utils.os", function () {
 
     let res = await getServiceList("node");
 
-    expect(executed_commands).to.deep.equal(['sc queryex type=service state=all'])
+    expect(executed_commands).to.deep.equal(['chcp 437 > nul && sc queryex type=service state=all'])
     expect(res).to.deep.equal(["ANodeLogger"]);
   });
+
+
+  it("getStartTypeAll", async function () {
+    let executed_commands = []
+    const { getStartTypeAll } = proxyquire("../src/windows/utils.os", {
+      "../rs": {
+        runScript : (cmd) => {
+          executed_commands.push(cmd);
+          return Promise.resolve({lines:[ret_startType]})
+        }
+      },
+    });
+
+    let res = await getStartTypeAll();
+
+    expect(executed_commands).to.deep.equal(['chcp 437 > nul && powershell -command "Get-WmiObject win32_service | Select-Object -Property ProcessId, Name, StartMode | ConvertTo-Csv -NoTypeInformation"'])
+    expect(res).to.deep.equal([
+      {Name: "ALG",          ProcessId: "0",     StartMode: "Manual"},
+      {Name: "AppIDSvc",     ProcessId: "10312", StartMode: "Manual"},
+      {Name: "AarSvc_40442", ProcessId: "15324", StartMode: "Manual"},
+      {Name: "pm2sd-test",   ProcessId: "0",     StartMode: "Auto"},
+    ]);
+  });
+
+
+  it("getStartType", async function () {
+    let executed_commands = []
+    const { getStartType } = proxyquire("../src/windows/utils.os", {
+      "../rs": {
+        runScript : (cmd) => {
+          executed_commands.push(cmd);
+          return Promise.resolve({lines:[ret_startType_sc]})
+        }
+      },
+    });
+
+    let res = await getStartType(['WSearch','SSDPSRV']);
+
+    expect(executed_commands).to.deep.equal(['chcp 437 > nul && sc qc WSearch & sc qc SSDPSRV'])
+    expect(res).to.deep.equal([
+      {Name:'WSearch',StartMode: 'Auto'},
+      {Name:'SSDPSRV',StartMode: 'Manual'},
+    ]);
+  });
+
+
+
+  it("getCpuPercent_ps", async function () {
+    let countPerfProc = 0;
+    let executed_commands = []
+    const { getCpuPercent_ps } = proxyquire("../src/windows/utils.os", {
+      "../rs": {
+        runScript : (cmd) => {
+          executed_commands.push(cmd);
+          return Promise.resolve( {lines: [ret_PerfProc[countPerfProc++]]})
+        }
+      },
+    });
+
+    let res = await getCpuPercent_ps();
+
+    expect(executed_commands).to.deep.equal([
+     'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"',
+     'powershell -command "Get-WmiObject Win32_PerfRawData_PerfProc_Process | Select-Object -Property IDProcess, Name, PercentProcessorTime | ConvertTo-Csv -NoTypeInformation"'
+    ]);
+    expect(res).to.deep.equal([
+        {
+          IDProcess: "4",
+          Name: "System",
+          PercentProcessorTime: 0
+        },
+        {
+          IDProcess: "132",
+          Name: "Registry",
+          PercentProcessorTime: 0
+        },
+        {
+          IDProcess: "15324",
+          Name: "svchost#73",
+          PercentProcessorTime: 2
+        },
+        {
+          IDProcess: "0",
+          Name: "Idle",
+          PercentProcessorTime: 80
+        },
+    ]);
+  });
+
+
+
+
+  it("getCpuPercent_wmic", async function () {
+    let countPerfProc = 0;
+    let executed_commands = []
+    const { getCpuPercent_wmic } = proxyquire("../src/windows/utils.os", {
+      "../rs": {
+        runScript : (cmd) => {
+          executed_commands.push(cmd);
+          return Promise.resolve( {lines: [ret_PerfProc_2]})
+        }
+      },
+    });
+
+    let res = await getCpuPercent_wmic();
+
+    expect(executed_commands).to.deep.equal([
+     'wmic path Win32_PerfFormattedData_PerfProc_Process get Name,PercentProcessorTime,IDProcess',
+    ]);
+    expect(res).to.deep.equal([
+        {
+          IDProcess: "6516",
+          Name: "AsusNumPadService",
+          PercentProcessorTime: 0
+        },
+        {
+          IDProcess: "15324",
+          Name: "AsusOSD",
+          PercentProcessorTime: 2
+        },
+        {
+          IDProcess: "0",
+          Name: "Idle",
+          PercentProcessorTime: 96.625
+        }
+    ]);
+  });
+
+
+
 
 
 
