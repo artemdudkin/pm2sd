@@ -7,7 +7,7 @@ async function prepareEnv() {
   let currentUser = await getCurrentUser();
   if (currentUser !== 'root') {
     //to avoid 'Failed to connect to bus' error
-    process.env.XDG_RUNTIME_DIR = `/run/user/${os.userInfo().uid}`;
+    process.env.XDG_RUNTIME_DIR = `/run/user/${os.userInfo().uid}`; // export XDG_RUNTIME_DIR=/run/user/$UID
   }
 }
 
