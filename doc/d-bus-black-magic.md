@@ -1,4 +1,4 @@
-1. There are two use cases for non-root users at Linux: (1) configure service as root and run service as non-root and (2) configure and run service as non-root. This instructions is all about second option (as first option available by default).
+1. There are two use cases for non-root users at Linux: (1) run pm2sd as root and start processes as non-root and (2) run pm2sd and managed processes as non-root. This instructions is all about second option (as first option available by default).
 
 2. Do `loginctl enable-linger <user>` from privileged user
 
