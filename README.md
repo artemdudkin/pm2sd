@@ -15,7 +15,7 @@ It works on Linux, and Windows is in the plans :construction: :hammer:.
 
 ## Commands
 
-Implemented commands: ls, start, stop, restart, delete, log.
+Implemented commands: start, stop, restart, delete, log, ls.
 
 ### ls
 
